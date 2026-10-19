@@ -1,0 +1,34 @@
+请为每只股票生成「基本面一页纸」：本周变化、财务质量、机构观点、估值、结论。
+
+## 纪律（本任务质量等级最高，违者整篇作废）
+- 财务数字只能来自注入的 fundamentals/research；没有就写 null 并在 data_gaps 声明。
+- ROE、负债率、现金流等指标的引用必须带报告期（如「2026Q2」「FY2026」）。
+- 美股财年与自然年错位时标财年口径（英伟达 FY2026≈自然年 2025）。
+- 机构目标价/评级只引用 research 注入内容，注明机构与时间。
+
+## 标的与行情
+{{ stocks | tojson(indent=2) }}
+{{ quotes | tojson(indent=2) }}
+
+## 基本面（fundamentals，按 code）
+{{ fundamentals | tojson(indent=2) }}
+
+## 研报（research，按 code）
+{{ research | tojson(indent=2) }}
+
+## 输出（严格 JSON）
+{
+  "week": "YYYY-MM-DD",
+  "pages": [
+    {
+      "code": "01810.HK",
+      "name": "小米集团-W",
+      "weekly_change": "本周变化一句话",
+      "financial_quality": "财务质量一段话（带报告期数字）",
+      "institutional_view": "机构观点一段话",
+      "valuation": "估值一段话",
+      "conclusion": "结论一句话",
+      "data_gaps": ["缺失项"]
+    }
+  ]
+}

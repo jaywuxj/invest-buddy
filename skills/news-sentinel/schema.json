@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": ["date", "events"],
+  "properties": {
+    "date": {"type": ["string", "null"]},
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "severity", "title"],
+        "properties": {
+          "code": {"type": ["string", "null"]},
+          "severity": {"enum": ["high", "medium"]},
+          "title": {"type": ["string", "null"]},
+          "source": {"type": ["string", "null"]},
+          "why_it_matters": {"type": ["string", "null"]},
+          "suggested_action": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "scanned_codes": {"type": "array", "items": {"type": ["string", "null"]}}
+  }
+}

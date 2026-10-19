@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "title"],
+        "properties": {
+          "id": {"type": "string"},
+          "category": {"enum": ["业绩", "回购", "股权变动", "经营", "监管", "资本运作", "管理层"]},
+          "type": {"type": ["string", "null"]},
+          "title": {"type": "string"},
+          "desc": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}

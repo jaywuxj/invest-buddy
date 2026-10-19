@@ -1,0 +1,7 @@
+以下预警规则刚被命中，请生成一句简短解读（不超过 80 字），说明当前价格与阈值的含义及建议关注方向。只输出 JSON。
+
+## 命中信息
+{{ hit | tojson(indent=2) }}
+
+## 输出
+{"interpretation": "一句话解读", "urgency": "high|medium|low"}

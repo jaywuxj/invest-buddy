@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "required": ["interpretation"],
+  "properties": {
+    "interpretation": {"type": ["string", "null"]},
+    "urgency": {"enum": ["high", "medium", "low"]}
+  }
+}

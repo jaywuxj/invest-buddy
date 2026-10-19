@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "required": ["week", "pages"],
+  "properties": {
+    "week": {"type": "string"},
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "conclusion"],
+        "properties": {
+          "code": {"type": "string"},
+          "name": {"type": "string"},
+          "weekly_change": {"type": ["string", "null"]},
+          "financial_quality": {"type": ["string", "null"]},
+          "institutional_view": {"type": ["string", "null"]},
+          "valuation": {"type": ["string", "null"]},
+          "conclusion": {"type": "string"},
+          "data_gaps": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

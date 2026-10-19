@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["summary_cn"],
+        "properties": {
+          "title_cn": { "type": ["string", "null"] },
+          "summary_cn": { "type": "string" }
+        }
+      }
+    }
+  }
+}

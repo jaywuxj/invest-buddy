@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "required": ["signals"],
+  "properties": {
+    "market_note": {"type": ["string", "null"]},
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "action", "action_level", "summary"],
+        "properties": {
+          "code": {"type": "string"},
+          "action": {"type": "string"},
+          "action_level": {"enum": ["bullish", "normal", "neutral", "watch-close"]},
+          "summary": {"type": "string"},
+          "conditions": {"type": "array", "items": {"type": "string"}},
+          "basis": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "news_sentiment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "sentiment"],
+        "properties": {
+          "id": {"type": "string"},
+          "sentiment": {"enum": ["利好", "利空", "中性"]}
+        }
+      }
+    }
+  }
+}

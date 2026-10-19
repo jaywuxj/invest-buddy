@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": ["week", "signals"],
+  "properties": {
+    "week": {"type": ["string", "null"]},
+    "market_note": {"type": ["string", "null"]},
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "action", "summary"],
+        "properties": {
+          "code": {"type": ["string", "null"]},
+          "name": {"type": ["string", "null"]},
+          "action": {"enum": ["加仓", "持有", "减仓", "观望"]},
+          "summary": {"type": ["string", "null"]},
+          "basis": {"type": ["string", "null"]},
+          "changed": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

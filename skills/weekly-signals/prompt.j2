@@ -1,0 +1,34 @@
+请对全组合做本周复盘，输出每只标的的信号。
+
+## 纪律
+- 只用注入数据；prior_signals 是上周结论，用于延续/修正，不是照抄。
+- 信号方向必须与数据一致：跌了不要写「走强」，涨了不要写「走弱」。
+- 港股用 .HK 代码，美股用 .US 代码，不要混用。
+
+## 标的清单（含成本与板块）
+{{ stocks | tojson(indent=2) }}
+
+## 最新行情快照
+{{ quotes | tojson(indent=2) }}
+
+## 上周信号（prior_signals）
+{{ prior_signals | tojson(indent=2) }}
+
+## 本周研报（research，按 code 分组，可能为空）
+{{ research | tojson(indent=2) }}
+
+## 输出（严格 JSON）
+{
+  "week": "YYYY-MM-DD（周五日期）",
+  "market_note": "本周市场一段话",
+  "signals": [
+    {
+      "code": "00700.HK",
+      "name": "腾讯控股",
+      "action": "加仓|持有|减仓|观望",
+      "summary": "本周信号一句话",
+      "basis": "依据（引用注入数据中的数字/事件）",
+      "changed": true/false（相对上周是否变化）
+    }
+  ]
+}

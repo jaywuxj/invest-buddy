@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "required": ["summary", "business", "industry", "bullbear", "catalyst", "risks"],
+  "properties": {
+    "summary": {"type": "string"},
+    "business": {
+      "type": "array",
+      "items": {"type": "object", "required": ["lead", "text"], "properties": {"lead": {"type": "string"}, "text": {"type": "string"}}}
+    },
+    "industry": {"type": "string"},
+    "bullbear": {
+      "type": "object", "required": ["bull", "bear"],
+      "properties": {"bull": {"type": "array", "items": {"type": "string"}}, "bear": {"type": "array", "items": {"type": "string"}}}
+    },
+    "catalyst": {"type": "array", "items": {"type": "array", "items": {"type": ["string", "null"]}}},
+    "risks": {"type": "array", "items": {"type": "string"}}
+  }
+}

@@ -1,0 +1,24 @@
+请基于注入数据生成美股盘前简报。
+
+## 纪律
+- 只用注入数据的数字；港股收盘数据与美股隔夜数据分开陈述，不要混用市场。
+- 没有新闻的标的不要编造动态，直接不出现在 highlights 中。
+
+## 美股持仓与关注
+{{ us_stocks | tojson(indent=2) }}
+
+## 最新行情（gtimg 快照，key 为 gtimg 代码）
+{{ quotes | tojson(indent=2) }}
+
+## 近 2 日美股新闻
+{{ us_news | tojson(indent=2) }}
+
+## 输出（严格 JSON）
+{
+  "date": "YYYY-MM-DD",
+  "market_note": "隔夜美股与宏观一段话",
+  "highlights": [
+    {"code": "AAPL.US", "headline": "一句话动态", "impact": "对持仓的影响一句话", "watch": "盘前关注什么"}
+  ],
+  "risk_note": "今日最大风险一句话"
+}

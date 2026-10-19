@@ -1,0 +1,20 @@
+{
+  "_comment": "可比公司配置示例：key=你的标的代码，value=可比公司列表（港股 hkXXXXX / 美股 usXXX）。按你自己的持仓编辑，估值页刷新生效。以下仅为格式示例。",
+  "items": {
+    "MSFT.US": [
+      "usAAPL",
+      "usGOOGL",
+      "usORCL"
+    ],
+    "AMZN.US": [
+      "usGOOGL",
+      "usMSFT",
+      "usWMT"
+    ],
+    "02318.HK": [
+      "hk01398",
+      "hk03988",
+      "hk02628"
+    ]
+  }
+}

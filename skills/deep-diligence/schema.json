@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "required": ["code", "stance", "score", "action", "risks"],
+  "properties": {
+    "code": {"type": ["string", "null"]},
+    "stance": {"enum": ["看多", "中性", "看空"]},
+    "score": {"type": "integer", "minimum": -2, "maximum": 2},
+    "business": {"type": ["string", "null"]},
+    "financials": {"type": ["string", "null"]},
+    "valuation": {"type": ["string", "null"]},
+    "risks": {"type": "array", "items": {"type": ["string", "null"]}, "minItems": 1},
+    "catalysts": {"type": "array", "items": {"type": ["string", "null"]}},
+    "action": {"enum": ["加仓", "持有", "减仓", "清仓", "观望"]},
+    "action_reason": {"type": ["string", "null"]},
+    "data_gaps": {"type": "array", "items": {"type": ["string", "null"]}}
+  }
+}

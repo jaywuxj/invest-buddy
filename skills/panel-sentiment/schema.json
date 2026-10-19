@@ -1,0 +1,63 @@
+{
+  "type": "object",
+  "required": [
+    "sentiment"
+  ],
+  "properties": {
+    "irrelevant": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "reason"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "sentiment": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "properties": {
+          "label": {
+            "enum": [
+              "利好",
+              "利空",
+              "中性"
+            ]
+          },
+          "basis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence": {
+            "type": [
+              "number",
+              "string",
+              "null"
+            ]
+          },
+          "fact": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

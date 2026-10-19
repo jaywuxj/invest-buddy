@@ -1,0 +1,172 @@
+/* ask.css — 「投资Buddy」右侧助手栏（复用 index.html 设计令牌） */
+.ask-pane { flex: 1 0 var(--ask-w, 400px); min-width: var(--ask-w, 400px); position: sticky; top: 0; height: 100vh; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; z-index: 25; }
+body.ask-off .ask-pane { display: none; }
+.ask-hd { display: flex; align-items: center; gap: 8px; padding: 16px 16px 10px 18px; flex-shrink: 0; }
+.ask-hd .ttl { font-size: 0.92rem; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.ask-hd .ttl svg { color: var(--accent); }
+.ask-hd .ctx { font-size: 0.72rem; color: var(--ink-3); background: var(--chip); border-radius: 999px; padding: 1px 9px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask-hd .sp { flex: 1; }
+.ask-ib { width: 28px; height: 28px; border: none; background: transparent; color: var(--ink-2); border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.ask-ib:hover { background: var(--chip); color: var(--ink); }
+.ask-ib:disabled { opacity: .35; cursor: default; background: transparent; }
+
+.ask-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 18px 16px; scrollbar-width: thin; scrollbar-color: transparent transparent; }
+.ask-body:hover { scrollbar-color: #D3D1C7 transparent; }
+
+.ask-empty { min-height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 6px; }
+.ask-hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px 8px 24px; }
+.ask-hero svg { color: var(--accent); margin-bottom: 14px; }
+.ask-hero h3 { font-size: 1.12rem; font-weight: 700; color: var(--ink); }
+.ask-hero p { font-size: 0.8rem; color: var(--ink-3); margin-top: 8px; line-height: 1.6; }
+.ask-sugs { display: flex; flex-direction: column; gap: 8px; }
+.ask-sug { text-align: left; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: 0.84rem; line-height: 1.5; border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: background .15s, border-color .15s; }
+.ask-sug:hover { background: var(--bg); border-color: var(--chip-2); }
+
+.ask-msg { margin-top: 16px; }
+.ask-msg.u { display: flex; justify-content: flex-end; }
+.ask-msg.u .bb { max-width: 86%; background: var(--chip); color: var(--ink); border-radius: 12px 12px 4px 12px; padding: 9px 13px; font-size: 0.86rem; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+.ask-msg.a .bb { font-size: 0.87rem; line-height: 1.75; color: var(--ink); word-break: break-word; }
+.ask-msg.a .bb p { margin: 6px 0; }
+.ask-msg.a .bb h1, .ask-msg.a .bb h2, .ask-msg.a .bb h3 { font-size: 0.9rem; font-weight: 700; margin: 12px 0 4px; }
+.ask-msg.a .bb ul, .ask-msg.a .bb ol { padding-left: 18px; margin: 4px 0; }
+.ask-msg.a .bb li { margin: 2px 0; }
+.ask-msg.a .bb strong { color: var(--ink); font-weight: 700; }
+.ask-msg.a .bb code { background: var(--chip); border-radius: 4px; padding: 0 4px; font-size: 0.8rem; }
+.ask-msg.a .bb table { border-collapse: collapse; margin: 8px 0; font-size: 0.78rem; width: 100%; display: block; overflow-x: auto; }
+.ask-msg.a .bb th, .ask-msg.a .bb td { padding: 5px 8px; text-align: left; white-space: nowrap; }
+.ask-msg.a .bb th { background: var(--bg); color: var(--ink-2); font-weight: 600; }
+.ask-msg.a .bb tr + tr td { border-top: 1px solid var(--line); }
+.ask-msg.a .bb blockquote { color: var(--ink-3); background: var(--bg); border-radius: 8px; padding: 6px 10px; margin: 6px 0; font-size: 0.8rem; }
+.ask-msg.a .bb .src { font-size: 0.7rem; color: var(--ink-3); background: var(--bg); border-radius: 4px; padding: 0 5px; margin: 0 2px; white-space: nowrap; }
+.ask-msg.a .ft { display: flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 0.7rem; color: var(--ink-3); }
+.ask-msg.a .ft .ask-ib { width: 24px; height: 24px; }
+.ask-msg.a .err { color: var(--up); font-size: 0.8rem; background: var(--up-bg); border-radius: 8px; padding: 8px 10px; }
+.ask-dots { display: inline-flex; gap: 4px; padding: 6px 0; }
+.ask-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-3); animation: askb 1.1s infinite ease-in-out; }
+.ask-dots i:nth-child(2) { animation-delay: .15s; } .ask-dots i:nth-child(3) { animation-delay: .3s; }
+.ask-dots em { font-style: normal; font-size: 0.74rem; color: var(--ink-3); margin-left: 6px; }
+@keyframes askb { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
+.ask-caret::after { content: ""; display: inline-block; width: 6px; height: 14px; background: var(--ink-3); margin-left: 2px; vertical-align: -2px; animation: askc 1s steps(1) infinite; }
+@keyframes askc { 50% { opacity: 0; } }
+
+.ask-ft { flex-shrink: 0; padding: 10px 14px 14px; }
+.ask-box { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 10px 10px 8px 12px; transition: border-color .15s; }
+.ask-box:focus-within { border-color: var(--chip-2); }
+.ask-box textarea { width: 100%; border: none; outline: none; resize: none; font: inherit; font-size: 0.86rem; line-height: 1.6; color: var(--ink); background: transparent; max-height: 160px; min-height: 24px; }
+.ask-box textarea::placeholder { color: var(--ink-3); }
+.ask-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.ask-row .scope { font-size: 0.7rem; color: var(--ink-3); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask-send { width: 30px; height: 30px; border: none; border-radius: 50%; background: var(--chip-2); color: var(--panel); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s; }
+.ask-send.on { background: var(--ink); }
+.ask-send.stop { background: var(--ink); }
+.ask-note { font-size: 0.66rem; color: var(--ink-3); text-align: center; margin-top: 8px; }
+
+.ask-fab { position: fixed; right: 18px; bottom: 22px; z-index: 40; display: none; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; font-size: 0.82rem; font-weight: 600; border-radius: 999px; padding: 9px 16px 9px 12px; cursor: pointer; box-shadow: 0 4px 16px rgba(20, 20, 20, .08); }
+.ask-fab svg { color: var(--accent); }
+body.ask-off .ask-fab { display: inline-flex; }
+.ask-rz { position: absolute; left: -4px; top: 0; bottom: 0; width: 8px; cursor: col-resize; z-index: 2; }
+@media (max-width: 1180px) { .ask-pane { position: fixed; right: 0; top: 0; box-shadow: -8px 0 24px rgba(20, 20, 20, .08); } }
+@media (max-width: 640px) { .ask-pane { width: 100vw; } }
+/* 宽屏：问答栏吃满 .main 右侧剩余空间；内容列限宽居中保证可读 */
+.ask-body > *, .ask-ft > * { max-width: 760px; margin-left: auto; margin-right: auto; }
+.ask-body > .ask-empty { max-width: 760px; }
+@media (max-width: 1180px) { .ask-pane { flex: none; width: var(--ask-w, 400px); min-width: 0; } }
+body:not(.ask-off) .main { flex: 0 1 1060px; min-width: 0; }
+/* 主区按自身宽度自适应（问答栏拉宽时），而非按视口 */
+.main { container-type: inline-size; container-name: main; }
+@container main (max-width: 860px) {
+  .s2-grid, .ex-grid, .xv-two, .pd-grid, .pd-breaches { grid-template-columns: 1fr !important; }
+}
+@container main (max-width: 600px) { .op-toc { display: none; } }
+.s2-box { min-width: 0; overflow-x: auto; }
+body.ask-resizing { user-select: none; cursor: col-resize; }
+
+/* 联网开关 + 检索过程 */
+.ask-web { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border: none; border-radius: 999px; background: transparent; color: var(--ink-3); font: inherit; font-size: 0.7rem; cursor: pointer; transition: background .15s, color .15s; }
+.ask-web:hover { background: var(--chip); color: var(--ink-2); }
+.ask-web.on { background: var(--chip); color: var(--accent); }
+.ask-msg.a .bb a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+.ask-msg.a .bb a:hover { border-bottom-color: currentColor; }
+.ask-tools { background: var(--bg); border-radius: 10px; margin: 0 0 8px; font-size: 0.76rem; color: var(--ink-2); }
+.ask-tools > summary { list-style: none; display: flex; align-items: center; gap: 6px; padding: 7px 10px; cursor: pointer; user-select: none; }
+.ask-tools > summary::-webkit-details-marker { display: none; }
+.ask-tools > summary > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask-tools > summary > svg:first-child { color: var(--accent); flex-shrink: 0; }
+.ask-tools > summary > svg:last-child { color: var(--ink-3); transition: transform .15s; flex-shrink: 0; }
+.ask-tools[open] > summary > svg:last-child { transform: rotate(90deg); }
+.ask-tools .ti { padding: 2px 10px 8px 29px; }
+.ask-tools .tq { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.ask-tools .tq b { font-weight: 600; color: var(--ink-2); flex-shrink: 0; }
+.ask-tools .tq span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.ask-tools .tq em { font-style: normal; color: var(--ink-3); flex-shrink: 0; font-size: 0.7rem; }
+.ask-tools .ti.err .tq em { color: var(--up); }
+.ask-tools .tl { display: flex; flex-direction: column; margin-top: 4px; }
+.ask-tools .tl a { display: flex; gap: 8px; align-items: baseline; padding: 3px 0; color: var(--ink-2); text-decoration: none; min-width: 0; }
+.ask-tools .tl a span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask-tools .tl a i { font-style: normal; color: var(--ink-3); font-size: 0.68rem; flex-shrink: 0; max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask-tools .tl a:hover span { color: var(--accent); }
+.ask-spin { display: inline-block; width: 10px; height: 10px; border: 1.5px solid var(--chip-2); border-top-color: var(--accent); border-radius: 50%; margin-right: 6px; vertical-align: -1px; animation: asks .8s linear infinite; }
+@keyframes asks { to { transform: rotate(360deg); } }
+/* ReAct 推理步骤时间线（深度模式） */
+.ask-tools.react .ask-step { position: relative; padding: 2px 10px 8px 29px; }
+.ask-tools.react .ask-step::before { content: ""; position: absolute; left: 16px; top: 18px; bottom: 0; width: 1px; background: var(--line); }
+.ask-tools.react .ask-step:last-child::before { display: none; }
+.ask-step .sh { display: flex; align-items: center; gap: 6px; margin-left: -21px; }
+.ask-step .sh i { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--chip); color: var(--ink-2); font-style: normal; font-size: 0.62rem; font-weight: 600; flex-shrink: 0; }
+.ask-step .sh b { font-weight: 600; color: var(--ink-2); }
+.ask-step.ck .sh i { background: var(--chip-2); color: var(--accent); }
+.ask-step.ck.done .sh b { font-weight: 500; color: var(--ink-3); }
+.ask-step .sx { margin: 3px 0 4px; color: var(--ink-2); line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.ask-step .ti { padding: 1px 0 2px; }
+.ask-tools .ti.pan .tq b { color: var(--accent); }
+.ask-mode.on { color: var(--accent); }
+/* 附件：输入框内待发送条 + 用户气泡内附件 + 拖拽遮罩 */
+.ask-clip { padding: 0 6px; }
+.ask-att { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.ask-att:empty { display: none; }
+.ask-chip { position: relative; display: flex; align-items: center; gap: 8px; max-width: 220px; min-width: 0; background: var(--bg); border-radius: 10px; padding: 5px 10px 5px 5px; }
+.ask-chip img { width: 38px; height: 38px; object-fit: cover; border-radius: 7px; flex-shrink: 0; background: var(--chip); }
+.ask-chip .fi { width: 38px; height: 38px; border-radius: 7px; background: var(--chip); color: var(--ink-2); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; flex-shrink: 0; }
+.ask-chip .fi em { font-style: normal; font-size: 0.56rem; font-weight: 700; letter-spacing: .02em; color: var(--ink-3); }
+.ask-chip .nm { display: flex; flex-direction: column; min-width: 0; }
+.ask-chip .nm b { font-size: 0.74rem; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask-chip .nm small { font-size: 0.66rem; color: var(--ink-3); }
+.ask-chip.busy { opacity: .6; }
+.ask-chip .x { position: absolute; top: -5px; right: -5px; width: 17px; height: 17px; border-radius: 50%; border: none; background: var(--ink-2); color: var(--panel); display: none; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.ask-chip:hover .x, .ask-chip .x:focus-visible { display: inline-flex; }
+@media (hover: none) { .ask-chip .x { display: inline-flex; } }
+.ask-msg.u { flex-direction: column; align-items: flex-end; gap: 6px; }
+.ask-uatt { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 86%; }
+.ask-uatt .ask-chip { background: var(--chip); }
+.ask-uatt .ask-chip.img { padding: 0; background: transparent; }
+.ask-uatt .ask-chip.img img { width: 96px; height: 72px; border-radius: 10px; }
+.ask-uatt .ask-chip.img .nm { display: none; }
+.ask-drop { position: absolute; inset: 8px; z-index: 5; display: none; align-items: center; justify-content: center; background: var(--panel); border: 1.5px dashed var(--accent); border-radius: 14px; pointer-events: none; }
+.ask-drop > div { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 0 24px; color: var(--ink-2); }
+.ask-drop svg { width: 26px; height: 26px; color: var(--accent); }
+.ask-drop b { font-size: 0.92rem; color: var(--ink); }
+.ask-drop span { font-size: 0.74rem; color: var(--ink-3); line-height: 1.6; }
+.ask-pane.drag .ask-drop { display: flex; }
+.ask-tools .ti.att .tq b { color: var(--accent); }
+
+/* 独立版：附件能力未接入，隐藏入口 */
+.ask-clip[hidden], #askDrop[hidden]{display:none !important}
+
+/* ---- 动作确认卡（投资Buddy · 能问能办） ---- */
+.ask-act { margin: 8px 0 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 10px 12px; font-size: 0.84rem; }
+.ask-act .t { font-weight: 650; margin-bottom: 6px; color: var(--ink); }
+.ask-act .row { padding: 3px 0; color: var(--ink-2); line-height: 1.5; }
+.ask-act .row .cost { display: block; font-style: normal; font-size: 0.74rem; color: var(--ink-3); margin-left: 1.2em; }
+.ask-act .row .ok { color: var(--up); font-size: 0.78rem; }
+.ask-act .row .no { color: var(--ink-3); font-size: 0.78rem; }
+.ask-act .ops { display: flex; gap: 8px; margin-top: 8px; }
+.ask-act .ops button { border: 1px solid var(--line); border-radius: 8px; padding: 5px 14px; font-size: 0.8rem; cursor: pointer; background: var(--bg); color: var(--ink-2); }
+.ask-act .ops .okb { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.ask-act .ops button:hover { filter: brightness(0.96); }
+.ask-act.done .t { color: var(--ink-3); font-weight: 500; }
+
+/* 回答末尾：数字核对提示 + 追问建议 */
+.ask-verify { margin-top: 8px; font-size: 0.74rem; color: #A8680F; line-height: 1.6; }
+.ask-fus { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ask-fu { border: 1px solid var(--line); background: var(--bg); color: var(--ink-2); font-size: 0.76rem; border-radius: 999px; padding: 3px 11px; cursor: pointer; font-family: inherit; }
+.ask-fu:hover { border-color: var(--accent); color: var(--accent); }

@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "required": ["date", "market_note", "highlights"],
+  "properties": {
+    "date": {"type": ["string", "null"]},
+    "market_note": {"type": ["string", "null"]},
+    "highlights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "headline"],
+        "properties": {
+          "code": {"type": ["string", "null"]},
+          "headline": {"type": ["string", "null"]},
+          "impact": {"type": ["string", "null"]},
+          "watch": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "risk_note": {"type": ["string", "null"]}
+  }
+}
