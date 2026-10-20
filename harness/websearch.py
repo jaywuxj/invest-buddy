@@ -282,6 +282,15 @@ def guard_query(query: str) -> str | None:
             return "搜索词包含持仓私有数值（成本/股数），已拦截；请仅用公开实体名称（公司/行业/宏观词）"
     if re.search(r"我的(持仓|成本|仓位|盈亏)|持仓(数量|成本|占比)|成本价|浮亏|浮盈", q):
         return "搜索词引用持仓私有信息，已拦截；请仅用公开实体名称（公司/行业/宏观词）"
+    if re.search(r"我的?(现金|可用资金|总资产|净投入|已实现)|现金(余额|还剩|还有多少)|账户(余额|总资产)", q):
+        return "搜索词引用账户私有信息（现金/总资产），已拦截；请仅用公开实体名称（公司/行业/宏观词）"
+    try:
+        from . import cash as cash_mod
+        for cur, amount in cash_mod.balances()[0].items():
+            if amount > 0 and f"{amount:g}" in q:
+                return "搜索词包含现金私有数值，已拦截；请仅用公开实体名称（公司/行业/宏观词）"
+    except Exception:
+        pass
     return None
 
 

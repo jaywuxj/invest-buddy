@@ -102,6 +102,29 @@ def _context_entries(code: str) -> tuple[str, list[dict]]:
     live = _read(DATA_DIR, "live", DATA_FILES)
     quotes = live.get("quotes") if isinstance(live.get("quotes"), dict) else {}
     add("行情快照（非实时）", DATA_DIR / "live.json", live, quotes.get(code) if stock else quotes, 7000)
+    # 资金概况（现金 + 已实现），让加减仓判断能用上「可用现金」与完整收益口径
+    try:
+        from . import cash as cash_mod
+        rates = {"CNY": 1.0}
+        for cur, rate in (live.get("fx") or {}).items():
+            try:
+                if float(rate) > 0:
+                    rates[cur] = float(rate)
+            except (TypeError, ValueError):
+                continue
+        f = cash_mod.summary(rates)
+        traded = cash_mod.realized_from_trades(rates).get("cny") or 0
+        brief = {"现金折人民币": f["cash_cny"],
+                 "现金分币种": {x["currency"]: x["amount"] for x in f["cash_by_currency"] if x["amount"]},
+                 "已实现盈亏折人民币": round(f["realized_history_cny"] + traded, 2),
+                 "其中历史一次性录入": f["realized_history"],
+                 "累计净投入覆盖值": f["net_invested_override"],
+                 "现金口径起点": f["cash_as_of"],
+                 "未计入现金推导的更早流水": f["ignored_trades"],
+                 "已配置现金": f["configured"]}
+        add("资金概况（现金与已实现）", cash_mod._file(), {"updated_at": f["updated_at"]}, brief, 2500)
+    except Exception:
+        pass
     analysis = _read(PANEL_OUT_DIR, "analysis", PANEL_FILES)
     if stock:
         for field, label in (("signals", "信号"), ("news", "近期新闻")):
@@ -357,6 +380,21 @@ ACTION_TOOL_DEFS = [
         "parameters": {"type": "object", "properties": {"code": {"type": "string"}, "kind": {"type": "string", "description": "预警类型（below_pct/above_pct/day_abs 等），不填删最新一条"}}, "required": ["code"]}}},
     {"type": "function", "function": {"name": "act_refresh_valuation", "description": "重新计算一只股票的估值（三把尺子，约 10-30 秒）。",
         "parameters": {"type": "object", "properties": {"code": {"type": "string"}}, "required": ["code"]}}},
+    {"type": "function", "function": {"name": "act_set_cash", "description": "录入或校准账户现金余额（按币种），并记录历史已卖出盈亏。用户说「我现在有 X 现金」「之前卖出赚了/亏了 X」时用。",
+        "parameters": {"type": "object", "properties": {
+            "cny": {"type": "number", "description": "人民币现金余额"}, "hkd": {"type": "number", "description": "港币现金余额"},
+            "usd": {"type": "number", "description": "美元现金余额"},
+            "as_of": {"type": "string", "description": "这个余额是哪一天的 YYYY-MM-DD，默认今天"},
+            "realized_cny": {"type": "number", "description": "历史已卖出累计盈亏（人民币，可负），可选"},
+            "realized_hkd": {"type": "number", "description": "历史已卖出累计盈亏（港币，可负），可选"},
+            "realized_usd": {"type": "number", "description": "历史已卖出累计盈亏（美元，可负），可选"}},
+            "required": []}}},
+    {"type": "function", "function": {"name": "act_add_cashflow", "description": "记一笔入金或出金（往券商账户转钱/转出）。dir：in 入金 / out 出金。",
+        "parameters": {"type": "object", "properties": {
+            "dir": {"type": "string", "enum": ["in", "out"]}, "amount": {"type": "number"},
+            "currency": {"type": "string", "enum": ["CNY", "HKD", "USD"]},
+            "date": {"type": "string", "description": "YYYY-MM-DD，默认今天"},
+            "note": {"type": "string"}}, "required": ["dir", "amount"]}}},
 ]
 ACTION_NAMES = {t["function"]["name"] for t in ACTION_TOOL_DEFS}
 
@@ -537,6 +575,26 @@ def action_summary(name: str, args: dict) -> dict | None:
             return {"kind": "error", "text": f"{code} 不在持仓或关注列表，估值需要先有该股的财报数据；先「加关注」即可"}
         return {"kind": "refresh_valuation", "text": f"重新计算估值：{label}（三把尺子）",
                 "payload": {"code": code}}
+    if name == "act_set_cash":
+        cur = {c: float(args.get(k) or 0) for c, k in (("CNY", "cny"), ("HKD", "hkd"), ("USD", "usd"))}
+        if not any(cur.values()):
+            return None
+        hist = {c: float(args.get(k) or 0) for c, k in (("CNY", "realized_cny"), ("HKD", "realized_hkd"), ("USD", "realized_usd"))}
+        txt = "录入现金：" + " · ".join(f"{c} {v:,.0f}" for c, v in cur.items() if v)
+        if any(hist.values()):
+            txt += "；历史已实现 " + " · ".join(f"{c} {v:,.0f}" for c, v in hist.items() if v)
+        return {"kind": "set_cash", "text": txt,
+                "payload": {"op": "set_balance", "currencies": cur, "as_of": str(args.get("as_of") or ""),
+                            "realized": hist}}
+    if name == "act_add_cashflow":
+        direction = str(args.get("dir") or "")
+        if direction not in ("in", "out") or not args.get("amount"):
+            return None
+        cur = str(args.get("currency") or "CNY").upper()
+        return {"kind": "add_cashflow",
+                "text": f"{'入金' if direction == 'in' else '出金'}：{cur} {float(args['amount']):,.0f}" + (f"（{args['note']}）" if args.get("note") else ""),
+                "payload": {"op": "flow_add", "dir": direction, "currency": cur, "amount": float(args["amount"]),
+                            "date": str(args.get("date") or ""), "note": str(args.get("note") or "")}}
     return None
 
 
@@ -626,7 +684,7 @@ async def ask_events(code: str, messages: list[dict], mode: str = "deep", web: s
     auto_reason = None
     if mode == "auto":  # 自动判定：复杂问题走 ReAct，简单问题直接答（2026-10-16 用户确认）
         q = " ".join(m.get("content", "") for m in messages[-1:] if m.get("role") == "user")
-        action_hit = re.search(r"帮我|给我|增加|添加|加一条|记一|记录|设置|删掉|删除|移除|修改|改成|标记|完成|刷新|更新|补齐|生成|跑一|触发|写一", q)
+        action_hit = re.search(r"帮我|给我|增加|添加|加一条|记一|记录|设置|删掉|删除|移除|修改|改成|标记|完成|刷新|更新|补齐|生成|跑一|触发|写一|入金|出金|转入|转出|现金|余额", q)
         complex_hit = re.search(r"为什么|分析|比较|对比|哪些|组合|全部|所有|风险|复盘|归因|评估|怎么|如何|逐只|拆解|利弊|是否", q)
         react = bool(complex_hit) or bool(action_hit) or len(q) > 60
         auto_reason = ("要执行操作（含增删改/记录/刷新类词）" if action_hit else "") + ("复杂问题（含分析/比较类词或较长）" if complex_hit or (not action_hit and len(q) > 60) else "") if react else "简单问题（问数值/结论类）"

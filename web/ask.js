@@ -385,6 +385,21 @@
     refresh_stock: function (p) { return W().apiPost("/api/refresh/stock", p); },
     delete_alert: function (p) { return W().apiPost("/api/alerts", p); },
     refresh_valuation: function (p) { return fetch("/api/valuation?code=" + encodeURIComponent(p.code) + "&force=1").then(function (r) { return r.json(); }); },
+    set_cash: function (p) {
+      var b = { op: "set_balance", currencies: p.currencies, as_of: p.as_of || "" };
+      return fetch("/api/cash", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) })
+        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          if (!r || !r.ok) return r;
+          var h = p.realized || {};
+          if (h.CNY || h.HKD || h.USD) {
+            return fetch("/api/cash", { method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ op: "set_realized", realized: h }) }).then(function (r2) { return r2.json(); }).then(function (r2) { return r2 && r2.ok ? r : r2; });
+          }
+          return r;
+        });
+    },
+    add_cashflow: function (p) { return fetch("/api/cash", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }).then(function (r) { return r.json(); }); },
   };
   function execAction(a, mi) {
     var fn = ACT_EXEC[a.kind];
@@ -395,6 +410,11 @@
       if (a.state === "done" && window.WB) {
         /* 动作可能改了持仓/关注/计划/笔记/流水：重新拉取持仓再重画（修复 2026-10-19：执行后列表不刷新） */
         var done = function () {
+          /* 现金变动后组合总览的「总资产/收益率」要重算，直接换掉 diag 再重画 */
+          if (a.kind === "set_cash" || a.kind === "add_cashflow") {
+            fetch("/api/portfolio").then(function (r) { return r.json(); })
+              .then(function (d) { if (d && d.ok) { WB.state().diag = d; WB.renderMain(); } }).catch(function () {});
+          }
           /* 若当前页面正是被删除/移除的标的，跳回组合总览，避免「未找到标的」空态 */
           var st = WB.state();
           if (st.selected !== "overview" && WB.findStock && !WB.findStock(st.selected)) { st.selected = "overview"; st.tab = "ov-signal"; }

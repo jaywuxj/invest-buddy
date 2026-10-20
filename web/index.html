@@ -1135,7 +1135,40 @@
   /* ===== P0-1 组合诊断 ===== */
   .pd-tabdot { display: inline-block; min-width: 16px; height: 16px; line-height: 16px; border-radius: 8px; background: var(--up); color: #fff; font-size: 0.66rem; font-weight: 700; text-align: center; margin-left: 4px; padding: 0 4px; vertical-align: 1px; }
   .pd-sub { font-size: 0.72rem; font-weight: 400; color: var(--ink-3); margin-left: 6px; }
-  .pd-hero { display: grid; grid-template-columns: 1.3fr 1.2fr 1fr 0.9fr 0.9fr; gap: 10px; margin-bottom: 24px; }
+  .pd-hero { display: grid; grid-template-columns: 1.25fr 1.35fr 0.9fr 0.85fr 0.8fr; gap: 10px; margin-bottom: 24px; }
+  /* 资金总账（现金 + 已实现），2026-10-20 */
+  .pd-cash { background: var(--panel); border-radius: 14px; padding: 14px 18px 16px; margin-bottom: 22px; }
+  .pd-cash-h { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .pd-cash-h b { font-size: 0.92rem; }
+  .pd-cash-h .s { font-size: 0.74rem; color: var(--ink-3); }
+  .pd-cash-h button { margin-left: auto; border: 1px solid var(--line); background: none; color: var(--ink-2); border-radius: 8px; padding: 4px 11px; font: inherit; font-size: 0.76rem; cursor: pointer; }
+  .pd-cash-h button:hover { border-color: var(--accent); color: var(--accent); }
+  .pd-cash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .pd-cz { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .pd-cz .k { font-size: 0.74rem; color: var(--ink-3); }
+  .pd-cz .v { font-size: 1.15rem; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .pd-cz .v.up { color: var(--up); } .pd-cz .v.down { color: var(--down); }
+  .pd-cz .s { font-size: 0.72rem; color: var(--ink-3); margin-top: 3px; line-height: 1.5; }
+  .pd-cz .cur { font-size: 0.74rem; color: var(--ink-2); margin-top: 5px; font-variant-numeric: tabular-nums; }
+  .pd-cz .cur span { display: inline-block; margin-right: 10px; }
+  .pd-cash-eq { margin-top: 10px; font-size: 0.76rem; color: var(--ink-3); line-height: 1.6; }
+  .pd-cash-eq code { background: var(--chip); border-radius: 4px; padding: 1px 5px; font-size: 0.74rem; }
+  .pd-cash-warn { margin-top: 8px; font-size: 0.76rem; color: #B57517; }
+  /* 现金录入表单 */
+  .cf-box { padding: 4px 0 6px; }
+  .cf-gh { font-size: 0.82rem; font-weight: 700; margin: 14px 0 8px; }
+  .cf-note { font-size: 0.76rem; color: var(--ink-3); line-height: 1.6; margin: -2px 0 8px; }
+  .cf-row { display: grid; grid-template-columns: 8.5em 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .cf-k { font-size: 0.82rem; color: var(--ink-2); }
+  .cf-in { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 0.86rem; background: var(--bg); color: var(--ink); width: 100%; }
+  .cf-in:focus { outline: none; border-color: var(--accent); }
+  .cf-h { grid-column: 2; font-size: 0.72rem; color: var(--ink-3); }
+  .cf-foot { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+  .cf-msg { font-size: 0.78rem; color: var(--ink-3); flex: 1; }
+  .cf-foot button { border-radius: 9px; padding: 7px 16px; font: inherit; font-size: 0.84rem; cursor: pointer; }
+  .cf-cancel { border: 1px solid var(--line); background: none; color: var(--ink-2); }
+  .cf-save { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
+  .cf-save:disabled { opacity: .55; cursor: default; }
   .pd-kpi { background: var(--panel); border-radius: 12px; padding: 14px 18px; min-width: 0; }
   .pd-kpi .k { font-size: 0.75rem; color: var(--ink-3); }
   .pd-kpi .v { font-size: 1.6rem; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; white-space: nowrap; }
@@ -1271,6 +1304,7 @@
   .pd-cv.up { color: var(--up); } .pd-cv.down { color: var(--down); }
   .pd-cs { text-align: right; font-size: 0.74rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
   @media (max-width: 1100px) { .pd-hero { grid-template-columns: repeat(3, 1fr); } .pd-grid, .pd-breaches { grid-template-columns: 1fr; } .pd-tiers { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 720px) { .pd-hero { grid-template-columns: repeat(2, 1fr); } }
   /* ===== P0-2 推送与盯盘 ===== */
   .nt-panel { padding: 16px 18px; }
   .nt-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--ink-2); flex-wrap: wrap; }
@@ -1592,12 +1626,18 @@
     onepager: null, themes: null, trends: null, notes: null, plans: null,
     quotes: {}, selected: "overview", tab: "ov-diag", sideTab: "pos",
     /* URL hash 路由（2026-10-16）：#代码/Tab 可分享可收藏，截图与测试也用同一入口 */
-    priv: (function () { try { return localStorage.getItem("wb.privacy") === "1"; } catch (e) { return false; } })()
+    priv: (function () {  /* ?privacy=1 可在分享链接/截图时强制隐藏金额 */
+      try { if (/[?&]privacy=1/.test(location.search)) return true; } catch (e) {}
+      try { return localStorage.getItem("wb.privacy") === "1"; } catch (e) { return false; }
+    })()
   };
   var PV_MASK = "****";
   function pv(s) { return state.priv ? PV_MASK : s; }
   /* 文本中的金额（¥/HK$/$ 开头，含万/亿）替换为掩码 */
   function pvText(s) { return state.priv ? String(s == null ? "" : s).replace(/[+\-−]?(?:HK\$|US\$|\$|¥)\s?-?[\d,]+(?:\.\d+)?\s*(?:万|亿)?/g, PV_MASK) : s; }
+  function pvPct(s) {  /* 隐私模式：百分比与股数也打码（仓位/浮盈亏同属敏感数据） */
+    return state.priv ? String(s == null ? "" : s).replace(/[+\-−]?\d+(?:\.\d+)?\s*%/g, PV_MASK).replace(/\d+(?:\.\d+)?\s*股/g, PV_MASK) : s;
+  }
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -2550,8 +2590,8 @@
     var lv = DC_LEVEL[d.level] || DC_LEVEL.insuff, sx = d.s2, longLv = dcLongLv(d), wk = sigFor(st.code), isH = st.type === "holding";
     var pp = isH ? portPos(st.code) : null;
     var facts = [];
-    if (isH && d.pnlPct != null) facts.push('浮盈亏 <b class="' + pctClass(d.pnlPct) + '">' + fmtPct(d.pnlPct) + "</b>");
-    if (pp && pp.weight != null) facts.push("仓位 <b" + (pp.weight > d.T.pos ? ' class="warn" title="超过单股上限"' : "") + ">" + pp.weight.toFixed(1) + "%</b>");
+    if (isH && d.pnlPct != null) facts.push(state.priv ? '浮盈亏 <b>****</b>' : '浮盈亏 <b class="' + pctClass(d.pnlPct) + '">' + fmtPct(d.pnlPct) + "</b>");
+    if (pp && pp.weight != null) facts.push(state.priv ? "仓位 <b>****</b>" : "仓位 <b" + (pp.weight > d.T.pos ? ' class="warn" title="超过单股上限"' : "") + ">" + pp.weight.toFixed(1) + "%</b>");
     var va = state.valAll && state.valAll[st.code];
     if (!isH && va && va.ok && va.verdict && va.verdict !== "暂无结论") facts.push("估值 <b>" + esc(va.verdict) + "</b>");
     var read = dcRead(d, st) || (d.insufficient ? "有数据的维度不足 2 个，先补数据再判断。" : "");
@@ -2772,6 +2812,114 @@
       '<div class="pd-stack">' + segs + (limit != null ? '<div class="pd-mark" style="left:' + limit + '%"></div>' : "") + "</div>" +
       '<div class="pd-legend">' + legend + "</div>" + (note ? '<div class="pd-note">' + note + "</div>" : "") + "</div>";
   }
+  /* ===== 资金总账：现金 + 已实现盈亏（2026-10-20）===== */
+  function renderCashCard(d) {
+    var f = (d && d.funds) || {}, on = !!f.configured;
+    var btn = '<button data-cash-edit>' + (on ? "录入 / 校准" : "录入现金") + "</button>";
+    if (!on) {
+      return '<div class="pd-cash"><div class="pd-cash-h"><b>资金总账</b><span class="s">现金 · 已实现盈亏</span>' + btn + "</div>" +
+        '<div class="pd-cash-eq">还没录入现金。现在的「总资产」等于股票市值，收益率只反映持仓浮动盈亏；' +
+        "补上<b>当前现金</b>和<b>历史已卖出盈亏</b>后才是完整的账户口径，AI 做加减仓判断也会用上（可用现金、仓位分母都会变）。</div></div>";
+    }
+    var cur = (f.cash_by_currency || []).filter(function (c) { return Math.abs(c.amount) > 0.005; });
+    var curLine = cur.length ? '<div class="cur">' + cur.map(function (c) {
+      return "<span>" + esc(c.currency) + " " + fmtNum(c.amount, 0) + " ≈ " + yuan(c.cny) + "</span>";
+    }).join("") + "</div>" : "";
+    var traded = ((f.realized_trades || {}).cny) || 0;
+    var grid =
+      '<div class="pd-cz"><div class="k">可用现金</div><div class="v">' + yuan(f.cash_cny) + "</div>" +
+        '<div class="s">占总资产 ' + pvPct((f.cash_weight || 0).toFixed(1) + "%") + "，可直接用于加仓</div>" + curLine + "</div>" +
+      '<div class="pd-cz"><div class="k">已实现盈亏</div><div class="v ' + pnlCls(f.realized_cny) + '">' + yuan(f.realized_cny, true) + "</div>" +
+        '<div class="s">交易流水 ' + yuan(traded, true) + " + 历史录入 " + yuan(f.realized_history_cny || 0, true) + "</div></div>" +
+      '<div class="pd-cz"><div class="k">累计净投入</div><div class="v">' + yuan(f.net_invested_used) + "</div>" +
+        '<div class="s">' + (f.net_invested_override ? "你录入的口径（推导值 " + yuan(f.net_invested_cny) + "）" : "总资产 − 总收益，自动推导") + " · 总资产 " + yuan(f.total_assets) + "</div></div>";
+    return '<div class="pd-cash"><div class="pd-cash-h"><b>资金总账</b><span class="s">现金 · 已实现 · 净投入</span>' + btn + "</div>" +
+      '<div class="pd-cash-grid">' + grid + "</div>" +
+      '<div class="pd-cash-eq">口径：<code>总资产 ' + yuan(f.total_assets) + "</code> − <code>总收益 " + yuan(f.total_return_cny, true) + "</code> = <code>净投入 " + yuan(f.net_invested_used) + "</code>；" +
+        "收益率 = 总收益 ÷ 净投入；仓位占比的分母是总资产（含现金）。" +
+        (f.cash_as_of ? "现金从 " + esc(f.cash_as_of) + " 的期初余额出发，之后的买卖 / 分红 / 入出金自动推导。" : "") +
+        (f.ignored_trades ? "期初之前有 " + f.ignored_trades + " 笔流水未计入现金推导（只用于推导持仓）。" : "") +
+      "</div>" +
+      (f.check_diff != null && Math.abs(f.check_diff) > 1 ? '<div class="pd-cash-warn">你录入的净投入与自动推导值相差 ' + yuan(f.check_diff, true) + "，请核对现金或历史盈亏是否录全。</div>" : "") +
+      "</div>";
+  }
+  /* 现金录入 / 校准弹窗 */
+  function ensureCashModal() {
+    var mask = document.getElementById("cashMask");
+    if (!mask) {
+      mask = document.createElement("div");
+      mask.id = "cashMask";
+      mask.className = "exm-mask";
+      document.body.appendChild(mask);
+      mask.addEventListener("click", function (e) { if (e.target === mask) mask.classList.remove("on"); });
+    }
+    return mask;
+  }
+  function openCashModal() {
+    var f = (state.diag && state.diag.funds) || {};
+    var cur = {}, hist = {};
+    (f.cash_by_currency || []).forEach(function (c) { cur[c.currency] = c.amount; });
+    Object.keys(f.realized_history || {}).forEach(function (k) { hist[k] = f.realized_history[k]; });
+    var num = function (v) { return v == null || !isFinite(v) || v === 0 ? "" : v; };
+    var field = function (id, label, v, hint, ph, type) {
+      var isNum = type !== "text";
+      return '<label class="cf-row"><span class="cf-k">' + label + '</span><input class="cf-in" id="' + id + '" type="' + (isNum ? "number" : "text") + '"' +
+        (isNum ? ' step="0.01" inputmode="decimal"' : "") + ' value="' + esc(num(v)) + '" placeholder="' + esc(ph || "0") + '">' +
+        (hint ? '<span class="cf-h">' + hint + "</span>" : "") + "</label>";
+    };
+    var mask = ensureCashModal();
+    mask.innerHTML = '<div class="exm" style="--ex-c:var(--line)"><button class="exm-close" data-cm-close>✕</button>' +
+      '<div class="exm-head"><span class="ex-name">现金与已实现盈亏</span><span class="exm-stock">只存在本机 data/cash.json</span></div>' +
+      '<div class="cf-box">' +
+        '<div class="cf-gh">当前各币种现金（期初余额）</div>' +
+        field("cfCny", "人民币 CNY", cur.CNY, "券商账户里的可用资金") +
+        field("cfHkd", "港币 HKD", cur.HKD, "按实时汇率折人民币") +
+        field("cfUsd", "美元 USD", cur.USD, "按实时汇率折人民币") +
+        field("cfAsOf", "这个余额是哪一天的", null, "格式 2026-10-20；这一天之后的买卖会自动加减现金", "2026-10-20", "text") +
+        '<div class="cf-gh">历史已卖出盈亏（一次性录入）</div>' +
+        '<div class="cf-note">在此之前已经清仓、系统里没有流水的部分，按币种填累计已实现盈亏，可填负数。</div>' +
+        field("cfRhCny", "CNY 已实现", hist.CNY) +
+        field("cfRhHkd", "HKD 已实现", hist.HKD) +
+        field("cfRhUsd", "USD 已实现", hist.USD) +
+        '<div class="cf-gh">累计净投入（可选，用于交叉核对）</div>' +
+        '<div class="cf-note">也就是你总共投入这个账户多少钱（折人民币）。留空则由「总资产 − 总收益」自动推导。</div>' +
+        field("cfNet", "累计净投入（元）", f.net_invested_override) +
+      "</div>" +
+      '<div class="cf-foot"><span class="cf-msg" id="cfMsg"></span>' +
+        '<button class="cf-cancel" data-cm-close>取消</button><button class="cf-save" data-cm-save>保存</button></div>' +
+      "</div>";
+    mask.classList.add("on");
+    Array.prototype.forEach.call(mask.querySelectorAll("[data-cm-close]"), function (b) {
+      b.addEventListener("click", function () { mask.classList.remove("on"); });
+    });
+    mask.querySelector("[data-cm-save]").addEventListener("click", function () {
+      var gv = function (id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; };
+      var currencies = { CNY: gv("cfCny") || 0, HKD: gv("cfHkd") || 0, USD: gv("cfUsd") || 0 };
+      var realized = { CNY: gv("cfRhCny") || 0, HKD: gv("cfRhHkd") || 0, USD: gv("cfRhUsd") || 0 };
+      var asOf = gv("cfAsOf"), net = gv("cfNet");
+      var msg = document.getElementById("cfMsg");
+      var btn = mask.querySelector("[data-cm-save]");
+      btn.disabled = true; msg.textContent = "保存中…";
+      var chain = fetch("/api/cash", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ op: "set_balance", currencies: currencies, as_of: asOf || "" }) });
+      if (String(net) !== "") chain = chain.then(function () {
+        return fetch("/api/cash", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ op: "set_net_invested", net_invested: net }) });
+      });
+      chain = chain.then(function () {
+        return fetch("/api/cash", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ op: "set_realized", realized: realized }) });
+      });
+      chain.then(function (r) { return r.json(); }).then(function (r) {
+        if (!r || !r.ok) { msg.textContent = "保存失败：" + ((r && r.message) || "网络异常"); btn.disabled = false; return; }
+        mask.classList.remove("on");
+        toast("现金已保存");
+        loadDiag(true);
+      }).catch(function (e) {
+        msg.textContent = "保存失败：" + e; btn.disabled = false;
+      });
+    });
+  }
   function renderDiagnosis() {
     var d = state.diag;
     if (!d) {
@@ -2779,18 +2927,28 @@
       return '<div class="empty">' + (state._diagErr ? "组合诊断加载失败：" + esc(state._diagErr) : "正在计算组合诊断…") + "</div>";
     }
     if (!d.rows || !d.rows.length) return '<div class="guide-box">在 <code>holdings.json</code> 为持仓填入 <code>cost</code> 与 <code>shares</code> 后自动生成组合诊断。</div>';
-    var t = d.totals, R = d.rules, html = "";
+    var t = d.totals, R = d.rules, f = d.funds || {}, html = "";
+    var cashOn = !!f.configured;
+    var assets = t.total_assets != null ? t.total_assets : t.mv;
+    var totalRet = t.total_return_cny != null ? t.total_return_cny : t.pnl;
+    var retPct = t.return_pct != null ? t.return_pct : t.pnl_pct;
+    var netInv = t.net_invested_cny != null ? t.net_invested_cny : t.cost;
+    var realized = t.realized_cny != null ? t.realized_cny : 0;
 
-    /* 1. 概览 */
+    /* 1. 概览（总资产口径：股票 + 现金；收益 = 浮动 + 已实现） */
     html += '<div class="pd-hero">' +
-      '<div class="pd-kpi"><div class="k">组合市值（折人民币）</div><div class="v">' + yuan(t.mv) + '</div><div class="s">成本 ' + yuan(t.cost) + " · " + t.count + " 只</div></div>" +
-      '<div class="pd-kpi"><div class="k">累计浮动盈亏</div><div class="v ' + pnlCls(t.pnl) + '">' + yuan(t.pnl, true) + '</div><div class="s"><span class="pf-pill ' + pnlCls(t.pnl) + '">' + fmtPct(t.pnl_pct) + "</span></div></div>" +
+      '<div class="pd-kpi"><div class="k">总资产（折人民币）</div><div class="v">' + yuan(assets) + '</div><div class="s">' +
+        (cashOn ? '股票 ' + yuan(t.mv) + ' · 现金 ' + yuan(t.cash) : '未录入现金') + '</div></div>' +
+      '<div class="pd-kpi"><div class="k">累计总收益</div><div class="v ' + pnlCls(totalRet) + '">' + yuan(totalRet, true) + '</div><div class="s">' +
+        '<span class="pf-pill ' + pnlCls(retPct) + '">' + pvPct(fmtPct(retPct)) + '</span> 净投入 ' + yuan(netInv) +
+        (cashOn && Math.abs(realized) > 0.5 ? ' · 已实现 ' + yuan(realized, true) : '') + '</div></div>' +
       '<div class="pd-kpi"><div class="k">今日盈亏</div><div class="v ' + pnlCls(t.day_pnl) + '">' + yuan(t.day_pnl, true) + '</div><div class="s">按实时涨跌幅估算</div></div>' +
       '<div class="pd-kpi"><div class="k">有效持仓数</div><div class="v">' + t.hhi_n.toFixed(1) + '</div><div class="s">1 / HHI，名义 ' + t.count + " 只</div></div>" +
       '<div class="pd-kpi"><div class="k">红线体检</div><div class="v"><span class="pd-red">' + d.summary.red + '</span><span class="pd-sep">/</span><span class="pd-amb">' + d.summary.amber + '</span></div><div class="s">超限 / 预警</div></div>' +
       "</div>";
+    html += renderCashCard(d);
     var noQ = d.rows.filter(function (r) { return r.price_src === "cost"; }).length;
-    html += trustMeta({ asof: d.at, src: "gtimg 实时行情 + 汇率 " + ((d.fx && d.fx.source) || "") + " + holdings.json 成本", kind: "rule",
+    html += trustMeta({ asof: d.at, src: "gtimg 实时行情 + 汇率 " + ((d.fx && d.fx.source) || "") + " + holdings.json 成本" + (cashOn ? " + cash.json 现金" : ""), kind: "rule",
       conf: noQ ? "mid" : "hi", why: noQ ? noQ + " 只无实时价，按成本/快照估算" : "纯公式计算，数据完整" });
 
     /* 2. 红线体检 */
@@ -2800,7 +2958,7 @@
 
     /* 3. 持仓权重（单股红线刻度） */
     var maxW = Math.max(R.single_max * 1.3, d.rows[0].weight * 1.05);
-    html += '<div class="sec-title">持仓权重 <span class="pd-sub">竖线 = 单股红线 ' + R.single_max + "%</span></div>";
+    html += '<div class="sec-title">持仓权重 <span class="pd-sub">竖线 = 单股红线 ' + R.single_max + "%，占比按总资产（含现金）</span></div>";
     html += '<div class="pd-card pd-wlist">' + d.rows.map(function (r) {
       var over = r.weight > R.single_max;
       return '<div class="pd-wrow" data-pd-go="' + esc(r.code) + '"><span class="pd-wn">' + esc(r.name) + '<em>' + esc(r.group) + "</em></span>" +
@@ -2844,7 +3002,8 @@
     /* 口径 */
     var fx = d.fx || {}, rt = fx.rates || {};
     html += '<div class="meta-bar" style="margin-top:14px">口径：市值 = 现价 × 股数 × 汇率（HKD ' + (rt.HKD || "--") + " / USD " + (rt.USD || "--") + "，" +
-      (fx.source === "fallback" ? "实时汇率不可用，使用兜底汇率" : "来源 " + esc(fx.source) + " " + esc(fx.at || "")) + "）；贡献 pp = 该股盈亏 / 组合总成本；计算时点 " + esc(d.at) + "，每 10 秒随行情更新。" +
+      (fx.source === "fallback" ? "实时汇率不可用，使用兜底汇率" : "来源 " + esc(fx.source) + " " + esc(fx.at || "")) + "）；贡献 pp = 该股盈亏 / 组合总成本；" +
+      "仓位占比分母 = 总资产（股票 " + yuan(t.mv) + " + 现金 " + yuan(t.cash != null ? t.cash : 0) + "）；计算时点 " + esc(d.at) + "，每 10 秒随行情更新。" +
       (d.missing && d.missing.length ? " 以下标的无行情按成本价计：" + esc(d.missing.join("、")) + "。" : "") + "</div>";
     return html;
   }
@@ -2862,6 +3021,7 @@
     var wd = document.querySelector("details.bd-grp.watch"); if (wd) wd.addEventListener("toggle", function () { state.bdWatchOpen = wd.open; });
   }
   function bindDiag() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cash-edit]"), function (el) { el.addEventListener("click", openCashModal); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-pd-set]"), function (el) { el.addEventListener("click", function () { if (window.SET) SET.open("rules"); }); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-pd-go]"), function (el) {
       el.addEventListener("click", function () {
@@ -4014,7 +4174,7 @@
     if (d.falsified) return "「我的判断」已被证伪：先复核，再决定去留。";
     var head = { hi: "公司底子偏强", mid: "公司底子中性", lo: "公司底子偏弱" }[lv];
     if (isH && g) {
-      if (g.action === "止损审视") return head + "，但纪律线已触发（" + String(g.why[0] || "").replace(/（[^）]*）/g, "") + "）：先复核判断再决定。";
+      if (g.action === "止损审视") return head + "，但纪律线已触发（" + pvPct(String(g.why[0] || "").replace(/（[^）]*）/g, "")) + "）：先复核判断再决定。";
       if (g.action === "减仓") return head + "，但仓位已超上限：先减回 " + d.T.pos + "% 以内。";
       if (g.action === "暂停加仓") return head + "，但浮亏较深：先复核「我的判断」，暂不加仓。";
       if (g.action === "接近上限") return head + (lv === "lo" ? "，仓位也已接近上限：不补仓，可借反弹降仓。" : "，仓位已接近上限：持有为主，不再加仓。");
@@ -4378,11 +4538,13 @@
   function dcGateHint(d, st, g) {
     if (!g) return "仓位纪律闸门";
     var why = String(g.why[0] || "").replace(/[。，；]$/, "");
+    why = pvPct(why);
     var pp = st.type === "holding" ? portPos(st.code) : null, t = d.T.pos / 100;
     var num = "";
     if (pp && pp.mv && pp.weight) {
       var V = pp.mv, Tot = V / (pp.weight / 100);
-      if (g.action === "减仓" && pp.weight / 100 > t) {
+      if (state.priv) { num = "（金额已隐藏）"; }
+      else if (g.action === "减仓" && pp.weight / 100 > t) {
         var x = (V - t * Tot) / (1 - t), sh = st.shares ? Math.ceil(st.shares * x / V) : null;
         why = why.replace(/[，,]\s*先回到上限内$/, "");
         num = "：卖出约 " + (sh ? sh + " 股（约 ¥" + fmtNum(x / 1e4, 1) + " 万）" : "¥" + fmtNum(x / 1e4, 1) + " 万") + "即可回到 " + d.T.pos + "% 以内";
@@ -5349,7 +5511,7 @@
   (function () {  /* 启动时从 #代码/Tab 恢复（可分享链接与截图入口） */
     try {
       var h = location.hash.slice(1).split("/");
-      if (h[0] && h[0] !== "overview") { if (h[1]) state.tab = decodeURIComponent(h[1]); state.selected = decodeURIComponent(h[0]); }
+      if (h[0]) { if (h[1]) state.tab = decodeURIComponent(h[1]); state.selected = decodeURIComponent(h[0]); }
     } catch (e) {}
   })();
   loadAll();

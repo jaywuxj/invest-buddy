@@ -147,9 +147,20 @@ async def portfolio_diagnosis() -> dict:
                      "day_pnl": day})
     total_mv = sum(r["mv"] for r in rows)
     total_cost = sum(r["cost"] for r in rows)
+    # 现金与已实现盈亏（2026-10-20）：仓位分母改为总资产（持仓市值 + 现金）
+    from . import cash as cash_mod
+    try:
+        funds = cash_mod.funds(total_mv, total_mv - total_cost, rates)
+    except Exception as exc:                      # 现金文件损坏时不能拖垮组合页，如实标注
+        funds = {"cash_cny": 0.0, "realized_cny": 0.0, "total_assets": total_mv,
+                 "total_return_cny": total_mv - total_cost, "net_invested_cny": total_cost,
+                 "net_invested_used": total_cost, "return_pct": None, "cash_weight": 0.0,
+                 "cash_by_currency": [], "configured": False, "error": str(exc)[:160]}
+    total_assets = float(funds.get("total_assets") or 0) or total_mv
+    denom = total_assets                           # 现金为 0 时等于 total_mv，旧结论不变
     rows.sort(key=lambda r: r["mv"], reverse=True)
     for row in rows:
-        row["weight"] = row["mv"] / total_mv * 100 if total_mv else 0
+        row["weight"] = row["mv"] / denom * 100 if denom else 0
 
     def group(key: str) -> list[dict]:
         out: dict[str, dict] = {}
@@ -160,7 +171,7 @@ async def portfolio_diagnosis() -> dict:
             item["pnl"] += r["pnl"]
             item["members"].append(r["name"])
         for item in out.values():
-            item["weight"] = item["mv"] / total_mv * 100 if total_mv else 0
+            item["weight"] = item["mv"] / denom * 100 if denom else 0
         return sorted(out.values(), key=lambda a: a["mv"], reverse=True)
 
     by_sector, by_market, by_currency = group("group"), group("market"), group("currency")
@@ -171,7 +182,7 @@ async def portfolio_diagnosis() -> dict:
         if members:
             mv = sum(r["mv"] for r in members)
             by_theme.append({"name": theme.get("name"), "mv": mv,
-                             "weight": mv / total_mv * 100 if total_mv else 0,
+                             "weight": mv / denom * 100 if denom else 0,
                              "members": [r["name"] for r in members]})
     by_theme.sort(key=lambda t: t["mv"], reverse=True)
     tiers = sorted(rules["loss_tiers"], reverse=True)
@@ -215,7 +226,14 @@ async def portfolio_diagnosis() -> dict:
     return {"ok": True, "at": _at(), "fx": {"rates": rates, "source": source, "error": error},
             "totals": {"mv": total_mv, "cost": total_cost, "pnl": total_mv - total_cost,
                        "pnl_pct": pnl_pct, "day_pnl": sum(r["day_pnl"] for r in rows), "count": len(rows),
-                       "hhi_n": 1 / sum((r["weight"] / 100) ** 2 for r in rows) if rows else 0},
+                       "hhi_n": 1 / sum((r["weight"] / 100) ** 2 for r in rows) if rows else 0,
+                       "cash": funds.get("cash_cny"), "total_assets": total_assets,
+                       "cash_weight": funds.get("cash_weight"),
+                       "realized_cny": funds.get("realized_cny"),
+                       "total_return_cny": funds.get("total_return_cny"),
+                       "net_invested_cny": funds.get("net_invested_used"),
+                       "return_pct": funds.get("return_pct")},
+            "funds": funds,
             "rows": rows, "by_sector": by_sector, "by_market": by_market, "by_currency": by_currency,
             "by_theme": by_theme, "loss_tiers": loss_tiers, "fx_sensitivity": fx_sensitivity,
             "breaches": breaches,
@@ -269,6 +287,19 @@ async def trade_view() -> dict:
     sums = {key: round(sum(r[key] or 0 for r in rows), 2)
             for key in ("pnl_cny", "realized_cny", "dividends_cny", "mv_cny")}
     sums.update(market_cny=None, selection_cny=None, timing_cny=None, fx_cny=None)
+    # 现金与总收益（2026-10-20）：pnl_cny 已含浮动＋交易流水已实现，此处只补历史一次性录入
+    from . import cash as cash_mod
+    try:
+        f = cash_mod.compose(sums.get("mv_cny") or 0,
+                             (sums.get("pnl_cny") or 0) + (cash_mod.summary(rates).get("realized_history_cny") or 0),
+                             rates, with_nav=False)
+        sums.update(cash_cny=f["cash_cny"], total_assets_cny=f["total_assets"],
+                    realized_history_cny=f["realized_history_cny"], total_return_cny=f["total_return_cny"],
+                    unrealized_cny=f["unrealized_cny"], net_invested_cny=f["net_invested_used"],
+                    return_pct=f["return_pct"])
+        funds_extra = {"funds": f}
+    except Exception as exc:
+        funds_extra = {"funds_error": str(exc)[:160]}
     # 四项归因（2026-10-16）：市场/汇率/时机/选股，四项严格加总当前持仓浮动盈亏；按天缓存
     from . import attribution
     try:
@@ -291,7 +322,7 @@ async def trade_view() -> dict:
             "sell_reasons": svc._SELL_REASONS, "items": list(reversed(d["items"])),
             "attribution": {"rows": rows, "totals": sums, "drift": drift,
                             "fx": rates, "fx_source": source, "fx_error": err, "partial": any(s["currency"] not in rates for s in by.values()),
-                            "available": True, **attr_extra},
+                            "available": True, **attr_extra, **funds_extra},
             "note": "平均成本、已实现收益及分红照常计算；市场/汇率/时机/选股归因：四项加总=当前持仓浮动盈亏，已卖出部分在「已实现/分红」列；成交日行情/汇率取当日收盘，误差约一个交易日。"}
 
 
@@ -473,6 +504,34 @@ def register_portfolio_routes(app: FastAPI) -> None:
             return mutate_alerts(body)
         except svc.PortfolioError as exc:
             return _error(exc)
+
+    @app.get("/api/cash")
+    async def get_cash():
+        """现金与资金总账：现金明细、已实现（流水+历史）、总资产、净投入、收益率。"""
+        from . import cash as cash_mod
+        try:
+            _, rates, _, _ = await _quotes_and_fx([])
+            total = await portfolio_diagnosis()
+            t = total.get("totals") or {}
+            return {"ok": True, "fx": rates,
+                    **cash_mod.funds(float(t.get("mv") or 0), float(t.get("pnl") or 0), rates, with_nav=False)}
+        except Exception as exc:
+            raise HTTPException(500, detail={"ok": False, "error": "cash_unavailable", "message": str(exc)[:200]}) from None
+
+    @app.post("/api/cash")
+    async def post_cash(body: dict[str, Any]) -> dict:
+        from . import cash as cash_mod
+        try:
+            res = cash_mod.mutate(body)
+        except ValueError as exc:
+            return JSONResponse({"ok": False, "error": "bad_request", "message": str(exc)}, status_code=400)
+        except Exception as exc:
+            return JSONResponse({"ok": False, "error": "cash_write_failed", "message": str(exc)[:200]}, status_code=500)
+        _, rates, _, _ = await _quotes_and_fx([])
+        total = await portfolio_diagnosis()
+        t = total.get("totals") or {}
+        return {"ok": True, "result": res,
+                **cash_mod.funds(float(t.get("mv") or 0), float(t.get("pnl") or 0), rates, with_nav=False)}
 
     @app.get("/api/alerts/preview")
     async def get_alert_preview() -> dict:

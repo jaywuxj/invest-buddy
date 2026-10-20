@@ -49,7 +49,10 @@ def evaluate(x: dict) -> dict:
 
     diag = x.get("diag") or {"rows": [], "totals": {"mv": 0}}
     row = next((r for r in (diag.get("rows") or []) if r.get("code") == x.get("code")), None)
-    tot_mv = (diag.get("totals") or {}).get("mv") or 0
+    # 仓位分母 = 总资产（持仓市值 + 现金）；未配置现金时 total_assets 等于 mv，旧结论不变
+    _t = diag.get("totals") or {}
+    tot_mv = _t.get("total_assets") or _t.get("mv") or 0
+    cash_avail = _t.get("cash")                    # None 表示尚未配置现金，不做资金检查
     amt = float(x["amount_cny"]) if x.get("amount_cny") and float(x["amount_cny"]) > 0 else 0
     is_buy, is_sell = action in BUY, action in SELL
     q = x.get("quote") or {}
@@ -75,6 +78,16 @@ def evaluate(x: dict) -> dict:
             if gw > base["sector_max"]:
                 add("amber", "sector", "集中度", f"行业「{grp}」将达 {_r1(gw)}%",
                     f"超出行业上限 {base['sector_max']}%，同一景气/监管冲击会同时命中。")
+        if cash_avail is not None:
+            if amt and amt > cash_avail + 1e-6:
+                add("amber", "funding", "资金", f"需 ¥{round(amt):,}，现金不足",
+                    f"当前现金 ¥{round(cash_avail):,}，缺口 ¥{round(amt - cash_avail):,}；需先入金或先卖出其他持仓。")
+            elif amt:
+                add("ok", "funding", "资金", "现金足够",
+                    f"当前现金 ¥{round(cash_avail):,}，本次占用 {amt / cash_avail * 100:.0f}%。")
+            else:
+                add("ok", "funding", "资金", f"可用现金 ¥{round(cash_avail):,}",
+                    "未填金额，未做资金充足性检查。")
         if day_pct is not None and day_pct > R["chase_day_red"]:
             add("red", "chase", "追高", f"今日已涨 {_r1(day_pct)}%",
                 f"单日涨幅超过 {R['chase_day_red']}%，情绪驱动概率高，建议等回落或分批。")
