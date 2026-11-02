@@ -351,7 +351,7 @@
   function i_cur() { return A.msgs.length - 1; }
   /* kind → 业务 API（payload 已由服务端校验；预警按现价换算触发价） */
   function alertBody(p) {
-    var st = window.WB && WB.findStock(p.code), live = st && (WB.state().quotes || {})[st.gtimg];
+    var st = window.WB && WB.findStock(p.code), live = st && (WB.state.quotes || {})[st.gtimg];
     var b = { op: "add", code: p.code, note: "小管家确认卡创建" };
     if (p.kind === "below_pct" || p.kind === "above_pct") {
       if (!live || live.price == null) return { error: "暂无实时行情，稍后再试" };
@@ -413,10 +413,10 @@
           /* 现金变动后组合总览的「总资产/收益率」要重算，直接换掉 diag 再重画 */
           if (a.kind === "set_cash" || a.kind === "add_cashflow") {
             fetch("/api/portfolio").then(function (r) { return r.json(); })
-              .then(function (d) { if (d && d.ok) { WB.state().diag = d; WB.renderMain(); } }).catch(function () {});
+              .then(function (d) { if (d && d.ok) { WB.state.diag = d; WB.renderMain(); } }).catch(function () {});
           }
           /* 若当前页面正是被删除/移除的标的，跳回组合总览，避免「未找到标的」空态 */
-          var st = WB.state();
+          var st = WB.state;
           if (st.selected !== "overview" && WB.findStock && !WB.findStock(st.selected)) { st.selected = "overview"; st.tab = "ov-signal"; }
           WB.renderSidebar(); WB.renderMain();
         };

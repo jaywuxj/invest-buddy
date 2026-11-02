@@ -67,15 +67,6 @@
   .brand .rf-dot.ok { background: #16a34a; }
   .brand .rf-dot.bad { background: #d97706; }
   /* 数据新鲜度 */
-  #frBar { flex-shrink: 0; margin: -6px 4px 12px; }
-  .fr-bar { width: 100%; display: flex; align-items: center; gap: 8px; border: none; border-radius: 8px; padding: 7px 10px; font-size: 0.76rem; font-family: inherit; cursor: pointer; text-align: left; background: transparent; color: var(--ink-3); }
-  .fr-bar:hover { background: var(--chip); }
-  .fr-bar.amber { background: #FBF1DF; color: #8A5A0B; }
-  .fr-bar.red { background: var(--up-bg); color: var(--up); }
-  .fr-bar b { font-weight: 700; }
-  .fr-bar .d { width: 7px; height: 7px; border-radius: 50%; background: var(--ok, #1E9E6A); flex: none; }
-  .fr-bar.amber .d { background: #B57517; } .fr-bar.red .d { background: var(--up); }
-  .fr-bar .go { margin-left: auto; opacity: 0.7; }
   .fr-banner { display: flex; align-items: center; gap: 10px; border-radius: 10px; padding: 9px 14px; margin: 0 0 12px; font-size: 0.82rem; background: #FBF1DF; color: #6E4A0C; }
   .fr-banner.red { background: var(--up-bg); color: #8E2A21; }
   .fr-banner svg { flex: none; }
@@ -1599,12 +1590,13 @@
 <link rel="stylesheet" href="/p1.css">
 <link rel="stylesheet" href="/ask.css">
 <link rel="stylesheet" href="/settings.css">
+<link rel="stylesheet" href="/learn.css">
 </head>
 <body>
 
 <aside class="sidebar" id="sidebar">
-  <div class="brand">投资Buddy <span class="tag">v3</span><span class="rf-dot" id="rfDot" style="display:none"></span><button class="rf-btn" id="btnRefresh" title="刷新行情并检查数据缺口（新增标的/逾期未更新自动补齐）"><span>⟳</span></button><button class="st-btn" id="btnSettings" title="设置" aria-label="设置"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.6"/><circle cx="5" cy="11.5" r="1.6"/></svg></button></div>
-  <div id="frBar"></div>
+  <div class="brand" title="投资Buddy v3">投资Buddy <button class="st-chip wait" id="stChip" title="正在检查数据状态…" aria-label="数据状态"></button><button class="rf-btn" id="btnRefresh" title="刷新行情并检查数据缺口（新增标的/逾期未更新自动补齐）"><span>⟳</span></button><button class="st-btn" id="btnSettings" title="设置" aria-label="设置"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.6"/><circle cx="5" cy="11.5" r="1.6"/></svg></button></div>
+  <div id="sideDock"></div>
   <div id="sideTabs"></div>
   <div id="sideList"></div>
 </aside>
@@ -1617,6 +1609,7 @@
 <script src="/p1.js"></script>
 <script src="/hedit.js"></script>
 <script src="/settings-ui.js"></script>
+<script src="/learn.js"></script>
 <script src="/ask.js" defer></script>
 <script>
 (function () {
@@ -1886,15 +1879,12 @@
   }
   function refreshStatus() {
     fetchOpt("/api/refresh/status").then(function (s) {
-      var dot = document.getElementById("rfDot");
-      if (!dot) return;
-      if (!s) { dot.style.display = "none"; return; }
-      dot.style.display = "";
+      if (!s) { state.tokenSt = null; renderFrBar(); return; }
       var ok = s.token && s.token.valid;
-      dot.className = "rf-dot " + (ok ? "ok" : "bad");
       var tip = ok ? "NeoData token 有效（" + s.token.age_min + " 分钟前保鲜）" : "NeoData token 已过期，等待每日保鲜任务";
       if (s.live && s.live.fetched_at) tip += "；上次主动刷新 " + String(s.live.fetched_at).slice(11, 16);
-      dot.title = tip;
+      state.tokenSt = { ok: !!ok, tip: tip };
+      renderFrBar();
     });
   }
 
@@ -1947,16 +1937,54 @@
       frDecorate();
     });
   }
+  /* 数据状态胶囊（2026-11-02 用户要求：原「自动更新数据均按计划」整行上移到标题旁，用 icon + 颜色表示）
+     绿 = 全部按计划（只显示图标）；琥珀 = 有逾期或 token 过期（图标 + 逾期项数）；红 = 严重逾期。点击打开数据新鲜度详情。 */
+  var ST_IC = {
+    ok: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M5.4 8.2l1.8 1.8 3.4-3.6"/></svg>',
+    amber: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 4.8V8l2.2 1.4"/></svg>',
+    red: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2l6.2 11H1.8z"/><path d="M8 6.4v3"/><circle cx="8" cy="11.4" r=".4" fill="currentColor"/></svg>',
+    wait: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6" stroke-dasharray="2 2.6"/></svg>'
+  };
   function renderFrBar() {
-    var el = document.getElementById("frBar");
-    if (!el || !state.fresh) return;
+    var el = document.getElementById("stChip");
+    if (!el) return;
+    var tk = state.tokenSt, tips = [];
+    if (!state.fresh) { el.className = "st-chip wait"; el.innerHTML = ST_IC.wait; el.title = "正在检查数据状态…"; return; }
     var s = state.fresh.summary, bad = frBad();
-    var cls = s.red ? "red" : bad.length ? "amber" : "";
-    el.innerHTML = '<button class="fr-bar ' + cls + '" id="frOpen" title="按各自动化任务的原更新计划检查数据是否按时更新">' + '<span class="d"></span>' +
-      (bad.length ? "<span><b>" + bad.length + "</b> 项数据未按计划更新</span>" : "<span>自动更新数据均按计划 · " + s.total + " 项</span>") +
-      '<span class="go">' + (bad.length ? "查看 ›" : "›") + "</span></button>";
-    document.getElementById("frOpen").onclick = openFrModal;
+    var lv = s.red ? "red" : bad.length ? "amber" : tk && !tk.ok ? "amber" : "ok";
+    tips.push(bad.length ? bad.length + " 项数据未按计划更新（严重逾期 " + s.red + " 项）" : "自动更新数据均按计划 · " + s.total + " 项");
+    if (tk) tips.push(tk.tip);
+    tips.push("点击查看数据新鲜度");
+    el.className = "st-chip " + lv;
+    el.innerHTML = ST_IC[lv] + (bad.length ? "<span>" + bad.length + "</span>" : lv === "amber" ? "<span>!</span>" : "");
+    el.title = tips.join("\n");
+    el.setAttribute("aria-label", tips[0]);
+    el.onclick = openFrModal;
   }
+  /* 侧栏功能坞：配置驱动。新增功能 = 在 DOCK 里加一项 { id, label, icon, sel, badge }，不要放还没做好的占位按钮 */
+  var DOCK = [
+    { id: "learn", label: "投资学堂", sel: "learn", icon: function () { return window.LEARN ? LEARN.icon : ""; },
+      badge: function () { return window.LEARN ? LEARN.badge() : ""; }, title: "系统化学习投资理论，并在自己的组合里看到它怎么用" }
+  ];
+  function renderSideDock() {
+    var el = document.getElementById("sideDock");
+    if (!el) return;
+    el.innerHTML = DOCK.map(function (d) {
+      var b = d.badge ? d.badge() : "";
+      return '<button class="dock-btn' + (state.selected === d.sel ? " on" : "") + '" data-dock="' + d.id + '" title="' + esc(d.title || d.label) + '">' +
+        d.icon() + "<span>" + esc(d.label) + "</span>" + (b ? '<span class="bd">' + esc(b) + "</span>" : "") + "</button>";
+    }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll("[data-dock]"), function (btn) {
+      btn.onclick = function () {
+        var d = DOCK.filter(function (x) { return x.id === btn.getAttribute("data-dock"); })[0];
+        if (!d) return;
+        if (findStock(state.selected)) state.learnFrom = state.selected;   /* 记住来源个股，学堂里的「去看看」优先跳回它 */
+        state.selected = d.sel; state.tab = ""; state.learnLesson = null;
+        renderSidebar(); renderMain(); window.scrollTo(0, 0);
+      };
+    });
+  }
+  window.WB_RENDER_DOCK = renderSideDock;
   function frDismissed() { try { return JSON.parse(sessionStorage.getItem("fr.dismiss") || "[]"); } catch (e) { return []; } }
   /* 在当前页插入逾期横幅 + 给受影响的 Tab 打点（renderMain 之后调用，幂等） */
   function frDecorate() {
@@ -2301,6 +2329,7 @@
     Array.prototype.forEach.call(main.querySelectorAll("details[data-fold]"), function (d) { openFolds[d.getAttribute("data-fold")] = d.open; });
     if (sel === "overview") main.innerHTML = renderOverview();
     else if (sel === "settings") main.innerHTML = window.SET ? SET.renderMain() : "";
+    else if (sel === "learn") main.innerHTML = window.LEARN ? LEARN.renderMain() : "";
     else if (sel.indexOf("theme:") === 0) main.innerHTML = renderTheme(sel.slice(6));
     else if (sel.indexOf("trend:") === 0) main.innerHTML = renderTrend(sel.slice(6));
     else main.innerHTML = renderStock(sel);
@@ -2349,6 +2378,8 @@
     if (state.tab === "notes" && findStock(state.selected)) bindNotes(state.selected);
     if (state.tab === "expert" && findStock(state.selected)) bindExperts(state.selected);
     if (state.selected === "settings" && window.SET) SET.bind();
+    if (state.selected === "learn" && window.LEARN) LEARN.bind();
+    renderSideDock();
     var sb = document.getElementById("btnSettings"); if (sb) sb.classList.toggle("on", state.selected === "settings");
     if (state.selected === "overview" && state.tab === "ov-risk") { bindNotify(); bindNotifyLog(); bindAlerts(); }
     if (state.selected === "overview" && state.tab === "ov-diag") bindDiag();
@@ -5512,6 +5543,7 @@
     try {
       var h = location.hash.slice(1).split("/");
       if (h[0]) { if (h[1]) state.tab = decodeURIComponent(h[1]); state.selected = decodeURIComponent(h[0]); }
+      if (h[0] === "learn" && h[2]) state.learnLesson = decodeURIComponent(h[2]);
     } catch (e) {}
   })();
   loadAll();
@@ -5528,6 +5560,8 @@
   document.getElementById("btnSettings").addEventListener("click", function () { if (window.SET) SET.open(state.selected === "settings" ? String(state.tab || "").replace(/^set-/, "") : "model"); });
   refreshStatus();
   setInterval(refreshStatus, 600000);
+  renderFrBar(); renderSideDock();
+  if (window.LEARN) LEARN.load();
   loadFresh();
   setInterval(loadFresh, 300000);
   document.getElementById("btnRefresh").addEventListener("click", function () {

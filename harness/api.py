@@ -255,3 +255,5 @@ register_research_routes(app)
 register_decision_routes(app)
 from .panel_plus_routes import register_plus_routes
 register_plus_routes(app)
+from .learn import register_learn_routes
+register_learn_routes(app)
