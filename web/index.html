@@ -45,7 +45,6 @@
     position: sticky; top: 0; height: 100vh;
     display: flex; flex-direction: column; overflow: hidden;
   }
-  #sideTabs { flex-shrink: 0; }
   #sideList { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 20px; scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: stable; }
   #sideList:hover, #sideList.scrolling { scrollbar-color: #D3D1C7 transparent; }
   #sideList::-webkit-scrollbar { width: 6px; }
@@ -123,8 +122,6 @@
   .side-row .ed { margin-left: auto; margin-right: 6px; width: 20px; height: 20px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-3); opacity: 0; align-self: center; }
   .side-row:hover .ed { opacity: 1; }
   .side-row .ed:hover { background: var(--chip-2); color: var(--ink); }
-  .side-add { display: block; width: 100%; text-align: left; border: none; background: transparent; color: var(--ink-3); font-family: inherit; font-size: 0.8rem; padding: 8px 10px; margin-top: 6px; border-radius: 10px; cursor: pointer; }
-  .side-add:hover { background: var(--bg); color: var(--accent); }
   /* 持仓 / 关注编辑弹窗 */
   .he-mask { position: fixed; inset: 0; background: rgba(18,22,28,0.42); z-index: 330; display: none; align-items: flex-start; justify-content: center; padding-top: 10vh; }
   .he-mask.on { display: flex; }
@@ -166,8 +163,6 @@
   .side-row .r2 { display: flex; justify-content: space-between; margin-top: 0; line-height: 1.35; }
   .side-row .cd { font-size: 0.68rem; color: var(--ink-3); }
   .side-row .px { font-size: 0.74rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .side-row.ov-side .cd { font-variant-numeric: tabular-nums; }
-  .side-row.ov-side .px.up { color: var(--up); } .side-row.ov-side .px.down { color: var(--down); }
   .up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--flat); }
 
   /* ============ 主区 ============ */
@@ -568,9 +563,6 @@
   body.dragging * { cursor: col-resize !important; }
 
   /* 侧栏 Tab */
-  .side-tabs { display: flex; gap: 2px; background: var(--bg); border-radius: 8px; padding: 2px; margin: 2px 4px 10px; }
-  .side-tab { flex: 1; border: none; background: transparent; font-size: 0.78rem; color: var(--ink-3); padding: 5px 0; border-radius: 6px; cursor: pointer; text-align: center; }
-  .side-tab.active { background: var(--panel); color: var(--ink); font-weight: 600; }
   .side-row .cnt { font-size: 0.72rem; color: var(--ink-3); background: var(--bg); border-radius: 4px; padding: 0 6px; }
   .side-sec .sec-hint { font-weight: 400; letter-spacing: 0; text-transform: none; }
 
@@ -1596,8 +1588,7 @@
 
 <aside class="sidebar" id="sidebar">
   <div class="brand" title="投资Buddy v3">投资Buddy <button class="st-chip wait" id="stChip" title="正在检查数据状态…" aria-label="数据状态"></button><button class="rf-btn" id="btnRefresh" title="刷新行情并检查数据缺口（新增标的/逾期未更新自动补齐）"><span>⟳</span></button><button class="st-btn" id="btnSettings" title="设置" aria-label="设置"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.5 4.5h7M12.5 4.5h1M2.5 11.5h1M6.5 11.5h7"/><circle cx="11" cy="4.5" r="1.6"/><circle cx="5" cy="11.5" r="1.6"/></svg></button></div>
-  <div id="sideDock"></div>
-  <div id="sideTabs"></div>
+  <nav id="sideNav" aria-label="主导航"></nav>
   <div id="sideList"></div>
 </aside>
 <div class="resizer" id="resizer"></div>
@@ -1617,7 +1608,7 @@
     holdings: null, analysis: null, fundamentals: null,
     research: null, events: null, alerts: null, alertsStatus: null,
     onepager: null, themes: null, trends: null, notes: null, plans: null,
-    quotes: {}, selected: "overview", tab: "ov-diag", sideTab: "pos",
+    quotes: {}, selected: "overview", tab: "ov-diag",
     /* URL hash 路由（2026-10-16）：#代码/Tab 可分享可收藏，截图与测试也用同一入口 */
     priv: (function () {  /* ?privacy=1 可在分享链接/截图时强制隐藏金额 */
       try { if (/[?&]privacy=1/.test(location.search)) return true; } catch (e) {}
@@ -1961,25 +1952,39 @@
     el.setAttribute("aria-label", tips[0]);
     el.onclick = openFrModal;
   }
-  /* 侧栏功能坞：配置驱动。新增功能 = 在 DOCK 里加一项 { id, label, icon, sel, badge }，不要放还没做好的占位按钮 */
-  var DOCK = [
+  /* 侧栏固定导航（2026-11-02 改版，参考用户截图）：一个功能一行（图标 + 名称 + 右侧摘要），不随股票列表滚动。
+     第一行固定是「组合总览」；其余由 NAV 配置驱动——新增功能只加一项 { id, label, icon, sel, badge }，不放未完成的占位入口。 */
+  var NAV_IC = {
+    overview: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="M5.2 10.6V8.6M8 10.6V5.4M10.8 10.6V7.2"/></svg>',
+    pos: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="2.5" y="5" width="11" height="8" rx="1.5"/><path d="M6 5V3.5h4V5"/></svg>',
+    watch: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 2.3l1.7 3.6 3.9.5-2.9 2.7.8 3.9L8 11.1 4.5 13l.8-3.9-2.9-2.7 3.9-.5z"/></svg>',
+    chev: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5l3 3 3-3"/></svg>',
+    plus: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 2.5v7M2.5 6h7"/></svg>'
+  };
+  var NAV = [
     { id: "learn", label: "投资学堂", sel: "learn", icon: function () { return window.LEARN ? LEARN.icon : ""; },
       badge: function () { return window.LEARN ? LEARN.badge() : ""; }, title: "系统化学习投资理论，并在自己的组合里看到它怎么用" }
   ];
   function renderSideDock() {
-    var el = document.getElementById("sideDock");
+    var el = document.getElementById("sideNav");
     if (!el) return;
-    el.innerHTML = DOCK.map(function (d) {
-      var b = d.badge ? d.badge() : "";
-      return '<button class="dock-btn' + (state.selected === d.sel ? " on" : "") + '" data-dock="' + d.id + '" title="' + esc(d.title || d.label) + '">' +
-        d.icon() + "<span>" + esc(d.label) + "</span>" + (b ? '<span class="bd">' + esc(b) + "</span>" : "") + "</button>";
-    }).join("");
-    Array.prototype.forEach.call(el.querySelectorAll("[data-dock]"), function (btn) {
+    el.innerHTML = '<button class="nav-row ov-side' + (state.selected === "overview" ? " on" : "") + '" data-nav="overview" title="组合总览">' +
+        '<span class="ic">' + NAV_IC.overview + '</span><span class="nb">' + ovSideInner() + "</span></button>" +
+      NAV.map(function (d) {
+        var b = d.badge ? d.badge() : "";
+        return '<button class="nav-row' + (state.selected === d.sel ? " on" : "") + '" data-nav="' + d.id + '" title="' + esc(d.title || d.label) + '">' +
+          '<span class="ic">' + d.icon() + '</span><span class="lb">' + esc(d.label) + "</span>" + (b ? '<span class="mt">' + esc(b) + "</span>" : "") + "</button>";
+      }).join("");
+    Array.prototype.forEach.call(el.querySelectorAll("[data-nav]"), function (btn) {
       btn.onclick = function () {
-        var d = DOCK.filter(function (x) { return x.id === btn.getAttribute("data-dock"); })[0];
-        if (!d) return;
-        if (findStock(state.selected)) state.learnFrom = state.selected;   /* 记住来源个股，学堂里的「去看看」优先跳回它 */
-        state.selected = d.sel; state.tab = ""; state.learnLesson = null;
+        var id = btn.getAttribute("data-nav");
+        if (id === "overview") { state.selected = "overview"; state.tab = "ov-diag"; }
+        else {
+          var d = NAV.filter(function (x) { return x.id === id; })[0];
+          if (!d) return;
+          if (findStock(state.selected)) state.learnFrom = state.selected;   /* 记住来源个股，学堂里的「去看看」优先跳回它 */
+          state.selected = d.sel; state.tab = ""; state.learnLesson = null;
+        }
         renderSidebar(); renderMain(); window.scrollTo(0, 0);
       };
     });
@@ -2103,65 +2108,87 @@
   }
 
   /* ---------- 左侧栏 ---------- */
+  /* 「我的股票」分组展开状态：默认持仓展开、关注收起；两组可同时展开；存 localStorage */
+  var SIDE_OPEN_KEY = "wb.sideOpen";
+  function sideOpen() {
+    if (!state.sideOpen) {
+      var o = null; try { o = JSON.parse(localStorage.getItem(SIDE_OPEN_KEY) || "null"); } catch (e) {}
+      state.sideOpen = o && typeof o === "object" ? { pos: o.pos !== false, watch: !!o.watch } : { pos: true, watch: false };
+    }
+    return state.sideOpen;
+  }
+  function setSideOpen(k, v) {
+    sideOpen()[k] = v;
+    try { localStorage.setItem(SIDE_OPEN_KEY, JSON.stringify(state.sideOpen)); } catch (e) {}
+  }
+  function sideGroupHead(k, label, n, open) {
+    return '<div class="sg-head' + (open ? " open" : "") + '" role="button" tabindex="0" aria-expanded="' + open + '" data-sg="' + k + '">' +
+      '<span class="cv">' + NAV_IC.chev + '</span><span class="ic">' + NAV_IC[k] + '</span><span class="lb">' + label + '</span><span class="mt">' + n + "</span>" +
+      '<button class="sg-add" data-hadd="' + k + '" title="添加' + label + '" aria-label="添加' + label + '">' + NAV_IC.plus + "</button></div>";
+  }
   function renderSidebar() {
     var html = "";
     var positions = (state.holdings.positions || []);
     var watch = (state.holdings.watch || []);
-    var themes = (state.themes && state.themes.items) || [];
-    var trends = (state.trends && state.trends.items) || [];
+    var op = sideOpen();
+    /* 切到某只股票时，若它所在分组是收起的，自动展开（只在选中变化时触发，不和用户手动收起冲突） */
+    if (state.selected !== state._sideSel) {
+      state._sideSel = state.selected;
+      if (positions.some(function (s) { return s.code === state.selected; }) && !op.pos) setSideOpen("pos", true);
+      if (watch.some(function (s) { return s.code === state.selected; }) && !op.watch) setSideOpen("watch", true);
+    }
 
-    var tabsHtml = '<div class="side-tabs">' +
-      sideTabBtn("pos", "持仓 " + positions.length) +
-      sideTabBtn("watch", "关注 " + watch.length) +
-      "</div>";
-
-    if (state.sideTab === "watch") {
-      if (watch.length) {
-        html += '<div class="side-sec">关注股票 · ' + watch.length + "</div>";
-        watch.forEach(function (s) { html += sideRow(s.code, s.name, s.code, s, false, "watch"); });
-      }
-      // 关注页只放股票：主题 / 趋势研究入口已移除（用户 2026-09-29 要求）
-      if (!watch.length) html += '<div class="empty" style="padding:18px 0">暂无关注内容</div>';
-      html += '<button class="side-add" data-hadd="watch">＋ 添加关注</button>';
-    } else {
-      html += ovSideRow();
+    html += '<div class="side-cap">我的股票</div>';
+    html += '<div class="sg">' + sideGroupHead("pos", "持仓", positions.length, op.pos);
+    if (op.pos) {
+      html += '<div class="sg-list">';
       if (positions.length) {
         var groups = groupPositions(positions);
-        var hinted = false;
         MKT_SEQ.forEach(function (m) {
           var g = groups[m];
           if (!g || !g.length) return;
-          html += '<div class="side-sec">' + m + " · " + g.length +
-            "</div>";
-          hinted = true;
+          html += '<div class="side-sec">' + m + " · " + g.length + "</div>";
           sortedGroup(g).forEach(function (s) { html += sideRow(s.code, s.name, s.code, s, true); });
         });
-      }
-      html += '<button class="side-add" data-hadd="pos">＋ 添加持仓</button>';
+      } else html += '<div class="sg-empty">还没有持仓，点右侧 ＋ 添加</div>';
+      html += "</div>";
     }
+    html += "</div>";
+    html += '<div class="sg">' + sideGroupHead("watch", "关注", watch.length, op.watch);
+    if (op.watch) {
+      html += '<div class="sg-list">';
+      if (watch.length) watch.forEach(function (s) { html += sideRow(s.code, s.name, s.code, s, false, "watch"); });
+      else html += '<div class="sg-empty">还没有关注，点右侧 ＋ 添加</div>';
+      html += "</div>";
+    }
+    html += "</div>";
 
-    document.getElementById("sideTabs").innerHTML = tabsHtml;
     document.getElementById("sideList").innerHTML = html;
-    Array.prototype.forEach.call(document.querySelectorAll(".side-tab"), function (el) {
-      el.addEventListener("click", function () {
-        state.sideTab = el.getAttribute("data-stab");
-        renderSidebar();
-      });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-sg]"), function (el) {
+      var tog = function () { setSideOpen(el.getAttribute("data-sg"), !sideOpen()[el.getAttribute("data-sg")]); renderSidebar(); };
+      el.addEventListener("click", function (e) { if (e.target.closest(".sg-add")) return; tog(); });
+      el.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target === el) { e.preventDefault(); tog(); } });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-hadd]"), function (el) {
-      el.addEventListener("click", function () { if (window.HEdit) HEdit.open(el.getAttribute("data-hadd")); });
+      el.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var k = el.getAttribute("data-hadd");
+        if (!sideOpen()[k]) { setSideOpen(k, true); renderSidebar(); }   /* 添加后马上能在展开的分组里看到 */
+        if (window.HEdit) HEdit.open(k);
+      });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-hedit]"), function (el) {
       el.addEventListener("click", function (e) { e.stopPropagation(); if (window.HEdit) HEdit.open(el.getAttribute("data-hkind"), el.getAttribute("data-hedit")); });
     });
-    Array.prototype.forEach.call(document.querySelectorAll(".side-row"), function (el) {
+    Array.prototype.forEach.call(document.querySelectorAll("#sideList .side-row"), function (el) {
       el.addEventListener("click", function () {
         state.selected = el.getAttribute("data-code");
-        state.tab = state.selected === "overview" ? "ov-diag" : "news";
+        state.tab = "news";
         renderSidebar(); renderMain();
       });
     });
     bindPosDnD();
+    renderSideDock();
   }
 
   /* ---------- 持仓行拖拽排序（限同市场组内，顺序持久化 localStorage） ---------- */
@@ -2225,9 +2252,7 @@
     seq.splice(before ? di : di + 1, 0, srcCode);
     localStorage.setItem(POS_ORDER_KEY, JSON.stringify(seq));
   }
-  function sideTabBtn(key, label) {
-    return '<button class="side-tab' + (state.sideTab === key ? " active" : "") + '" data-stab="' + key + '">' + esc(label) + "</button>";
-  }
+
   function themeRow(t) {
     var upN = 0, downN = 0, priced = 0;
     (t.members || []).forEach(function (c) {
@@ -2266,7 +2291,7 @@
   }
   /* 侧栏「组合总览」行：与个股行同一版式——右上今日涨跌幅（按人民币市值加权，实时），下行左「N 只」、右今日涨跌额（折人民币，隐私模式打码） */
   function portLive() {
-    var P = state.holdings.positions || [], fx = (state.diag && state.diag.fx && state.diag.fx.rates) || { CNY: 1, HKD: 0.85, USD: 6.7 };
+    var P = (state.holdings && state.holdings.positions) || [], fx = (state.diag && state.diag.fx && state.diag.fx.rates) || { CNY: 1, HKD: 0.85, USD: 6.7 };
     var mv = 0, prev = 0, cost = 0, n = 0, q0 = 0;
     P.forEach(function (s) {
       var sh = Number(s.shares) || 0; if (!sh) return;
@@ -2280,14 +2305,11 @@
   function ovSideInner() {
     var L = portLive();
     return '<span class="r1"><span class="nm">组合总览</span>' + (L.day != null ? '<span class="pct ' + pctClass(L.day) + '" title="今日涨跌（按人民币市值加权）">' + fmtPct(L.day) + "</span>" : "") + "</span>" +
-      '<span class="r2"><span class="cd">' + L.n + " 只</span>" +
+      '<span class="r2"><span class="cd">' + (L.dayAmt != null ? "今日" : "") + "</span>" +   /* 只数已在「持仓」分组行显示，这里不重复 */
       '<span class="px ' + (L.dayAmt != null && !state.priv ? pctClass(L.dayAmt) : "") + '" title="今日涨跌额（折人民币）">' + (L.dayAmt != null ? yuan(L.dayAmt, true) : "") + "</span></span>";
   }
-  function ovSideRow() {
-    return '<button class="side-row ov-side' + (state.selected === "overview" ? " active" : "") + '" data-code="overview">' + ovSideInner() + "</button>";
-  }
   function updateQuoteDOM() {
-    var ovr = document.querySelector(".side-row.ov-side"); if (ovr) ovr.innerHTML = ovSideInner();
+    var ovr = document.querySelector(".nav-row.ov-side .nb"); if (ovr) ovr.innerHTML = ovSideInner();
     var qpv = document.getElementById("qaPv"), qst = findStock(state.selected); if (qpv && qst) qpv.innerHTML = qaPreview(qst);
     Array.prototype.forEach.call(document.querySelectorAll("[data-qpct]"), function (el) {
       var q = state.quotes[el.getAttribute("data-qpct")];

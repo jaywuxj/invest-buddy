@@ -8,14 +8,39 @@
 .brand .st-chip:hover { filter: brightness(0.96); }
 .brand .st-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-/* ===== 侧栏：功能坞（配置驱动，新增功能只加一行 DOCK 配置） ===== */
-#sideDock { flex-shrink: 0; display: flex; flex-wrap: wrap; gap: 6px; margin: -6px 4px 12px; }
-#sideDock:empty { display: none; }
-.dock-btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--ink-2); font-family: inherit; font-size: 0.78rem; cursor: pointer; white-space: nowrap; }
-.dock-btn svg { width: 14px; height: 14px; flex: none; }
-.dock-btn .bd { font-size: 0.7rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.dock-btn:hover { background: var(--chip); color: var(--ink); }
-.dock-btn.on { background: var(--chip); color: var(--ink); border-color: var(--chip-2); font-weight: 600; }
+/* ===== 侧栏：固定导航行 + 「我的股票」可展开分组（2026-11-02 改版） ===== */
+#sideNav { flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; margin: -4px 0 6px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.nav-row, .sg-head { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: none; background: transparent; border-radius: 10px; padding: 7px 10px; font-family: inherit; color: var(--ink); cursor: pointer; }
+.nav-row:hover, .sg-head:hover { background: var(--bg); }
+.nav-row.on { background: var(--chip); }
+.nav-row .ic, .sg-head .ic { width: 16px; height: 16px; flex: none; color: var(--ink-2); display: inline-flex; }
+.nav-row .ic svg, .sg-head .ic svg { width: 16px; height: 16px; }
+.nav-row.on .ic { color: var(--ink); }
+.nav-row .lb, .sg-head .lb { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 600; }
+.nav-row .mt, .sg-head .mt { font-size: 0.74rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.nav-row.ov-side .nb { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.nav-row.ov-side .r1 { display: flex; justify-content: space-between; align-items: baseline; line-height: 1.35; }
+.nav-row.ov-side .nm { font-size: 0.88rem; font-weight: 600; }
+.nav-row.ov-side .pct { font-size: 0.8rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.nav-row.ov-side .r2 { display: flex; justify-content: space-between; line-height: 1.35; }
+.nav-row.ov-side .cd { font-size: 0.68rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.nav-row.ov-side .px { font-size: 0.74rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.nav-row.ov-side .px.up { color: var(--up); } .nav-row.ov-side .px.down { color: var(--down); }
+.nav-row:focus-visible, .sg-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.side-cap { font-size: 0.74rem; color: var(--ink-3); padding: 10px 10px 4px; letter-spacing: 0.04em; }
+.sg { margin-bottom: 2px; }
+.sg-head { gap: 6px; padding: 7px 6px 7px 4px; }
+.sg-head .cv { width: 12px; height: 12px; flex: none; color: var(--ink-3); display: inline-flex; transform: rotate(-90deg); transition: transform .15s; }
+.sg-head.open .cv { transform: none; }
+.sg-head .cv svg { width: 12px; height: 12px; }
+.sg-head .ic { margin-right: 4px; }
+.sg-add { width: 22px; height: 22px; flex: none; border: none; background: transparent; border-radius: 6px; color: var(--ink-3); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; margin-left: 2px; }
+.sg-add svg { width: 12px; height: 12px; }
+.sg-add:hover { background: var(--chip-2); color: var(--ink); }
+.sg-list { padding-left: 14px; }
+.sg-list .side-sec { padding: 6px 10px 4px; font-size: 0.72rem; }
+.sg-empty { font-size: 0.78rem; color: var(--ink-3); padding: 6px 10px 10px; }
 
 /* ===== 投资学堂页面 ===== */
 .ln-wrap { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; align-items: start; }
