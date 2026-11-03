@@ -50,6 +50,9 @@ DEFAULT_RULES = [
     {"id": "review", "name": "周度复盘", "file": "reviews", "ts": "review_latest",
      "sched": {"freq": "weekly", "days": [6], "at": ["09:30"]}, "grace_min": 240,
      "task": "周度复盘（review-weekly）", "tabs": [], "pages": "周度复盘"},
+    {"id": "screener", "name": "选股", "file": "screener.json", "ts": "generated_at",
+     "sched": {"freq": "weekly", "days": [6], "at": ["10:00"]}, "grace_min": 360,
+     "task": "选股周更（screener-weekly）", "tabs": [], "pages": "选股", "soft": True, "optional": True},
     {"id": "alerts", "name": "盯盘预警检查", "file": "alerts_status.json", "ts": "checked_at",
      "sched": {"freq": "hourly", "days": _WD, "from": "09:00", "to": "23:00", "every_min": 60},
      "grace_min": 90, "task": "盯盘预警检查（alert-check）", "tabs": [], "pages": "预警与日历"},
@@ -195,6 +198,8 @@ def evaluate(now: float | None = None, holdings_codes: list[str] | None = None) 
     items = []
     for r in _rules():
         at, miss_n = _actual_ts(r, codes)
+        if at is None and r.get("optional"):
+            continue                     # 可选功能（如选股，需 westock）从未运行过：不算逾期
         due = prev_due = first_missed = None
         status, missed = "ok", 0
         grace_ms = r.get("grace_min", 60) * 60

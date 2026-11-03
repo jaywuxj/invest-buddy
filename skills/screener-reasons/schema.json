@@ -1,0 +1,5 @@
+{"type": "object", "required": ["items"], "properties": {"items": {"type": "array", "items": {"type": "object",
+  "required": ["code", "one_line", "bull", "risks", "falsify", "watch"],
+  "properties": {"code": {"type": "string"}, "one_line": {"type": "string"},
+    "bull": {"type": "array", "items": {"type": "string"}}, "risks": {"type": "array", "items": {"type": "string"}},
+    "falsify": {"type": "array", "items": {"type": "string"}}, "watch": {"type": "string"}}}}}}

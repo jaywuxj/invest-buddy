@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 import re
 import time
+import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -106,6 +108,31 @@ def clean_bars(bars: list[dict]) -> list[dict]:
     return rows[start:]
 
 
+# 腾讯 K 线有两个等价入口；一个被限流（HTTP 501/429）时自动换另一个（2026-11-03 实测 web.ifzq 被封、proxy.finance 正常）
+_KL_HOSTS = ["https://web.ifzq.gtimg.cn/appstock/app/fqkline/get",
+             "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get"]
+_kl_bad: dict[str, float] = {}
+
+
+def gtimg_kline_json(sym: str, period: str, n: int) -> dict:
+    last: Exception | None = None
+    hosts = sorted(_KL_HOSTS, key=lambda h: _kl_bad.get(h, 0))     # 最近没出错的优先
+    for h in hosts:
+        url = h + "?param=" + urllib.parse.quote(sym) + f",{period},,,{n},qfq"
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=_UA), timeout=10) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            last = e
+            _kl_bad[h] = time.time()
+            if e.code not in (429, 501, 502, 503):
+                raise
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            last = e
+            _kl_bad[h] = time.time()
+    raise last or RuntimeError("K 线接口不可用")
+
+
 def fetch_kline(sym: str, n: int = 260) -> list[dict]:
     """前复权日 K，返回 [{d,o,c,h,l}] 升序；失败抛异常（调用方按标的降级）。"""
     n = min(640, max(20, int(n or 260)))
@@ -124,11 +151,7 @@ def fetch_kline(sym: str, n: int = 260) -> list[dict]:
                 return bars
         except (OSError, ValueError):
             pass
-    url = ("https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param="
-           + urllib.parse.quote(sym) + f",day,,,{n},qfq")
-    req = urllib.request.Request(url, headers=_UA)
-    with urllib.request.urlopen(req, timeout=8) as resp:
-        payload = json.loads(resp.read().decode("utf-8"))
+    payload = gtimg_kline_json(sym, "day", n)
     node = (payload.get("data") or {}).get(sym) or {}
     raw = node.get("qfqday") or node.get("day")
     if not isinstance(raw, list) or len(raw) < 2:

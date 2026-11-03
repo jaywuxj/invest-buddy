@@ -157,6 +157,17 @@ def _context_entries(code: str) -> tuple[str, list[dict]]:
     if isinstance(rules, list):
         add("预警规则", CONFIG_DIR / "alerts.json", alerts,
             [r for r in rules if isinstance(r, dict) and (r.get("code") == code if stock else True)][:30], 5000)
+    if not stock:   # 选股本周精选（公开股票，程序数据 + 模型理由摘要）
+        sc = read_json(PANEL_OUT_DIR / "screener.json", {}) or {}
+        brief = []
+        for m in (sc.get("markets") or {}).values():
+            for x in m.get("picks") or []:
+                v = x.get("valuation") or {}
+                brief.append({"code": x.get("code"), "name": x.get("name"), "市场": m.get("name"), "行业": x.get("industry"),
+                              "综合分": x.get("score"), "池内名次": x.get("rank"), "标签": x.get("tags"),
+                              "估值结论": v.get("verdict"), "理由": ((x.get("reason") or {}).get("one_line"))})
+        if brief:
+            add("选股本周精选（值得研究的名单，非买入建议）", PANEL_OUT_DIR / "screener.json", sc, brief, 4000)
     experts = _read(DATA_DIR, "experts", DATA_FILES)
     ex = experts.get("stocks")
     add("大师研究", DATA_DIR / "experts.json", experts, ex.get(code) if stock and isinstance(ex, dict) else None, 12000)

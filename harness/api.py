@@ -257,3 +257,5 @@ from .panel_plus_routes import register_plus_routes
 register_plus_routes(app)
 from .learn import register_learn_routes
 register_learn_routes(app)
+from .screener_run import register_screener_routes
+register_screener_routes(app)

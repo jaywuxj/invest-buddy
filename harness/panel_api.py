@@ -573,6 +573,7 @@ def register_panel_routes(app: FastAPI) -> None:
         "settings.css": "text/css", "settings-ui.js": "application/javascript",
         "hedit.js": "application/javascript", "timeline.js": "application/javascript",
         "learn.js": "application/javascript", "learn.css": "text/css",
+        "screener.js": "application/javascript", "screener.css": "text/css",
     }
     for _fname, _ctype in _STATIC.items():
         async def _static_file(name: str = _fname, ctype: str = _ctype) -> FileResponse:

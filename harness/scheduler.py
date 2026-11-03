@@ -30,6 +30,7 @@ SCHEDULES = [
     ("valuation-refresh", CronTrigger(hour=6, minute=30), "每天 06:30 估值预计算（美股收盘后、港股开盘前）"),
     ("experts-refresh", CronTrigger(day_of_week="sat", hour=9, minute=0), "周六 09:00 大师分析周更"),
     ("review-weekly", CronTrigger(day_of_week="sat", hour=9, minute=30), "周六 09:30 周度复盘"),
+    ("screener-weekly", CronTrigger(day_of_week="sat", hour=10, minute=0), "周六 10:00 选股周更"),
     ("preopen-brief", CronTrigger(day_of_week="mon-fri", hour=21, minute=30), "工作日 21:30"),
 ]
 

@@ -1583,6 +1583,7 @@
 <link rel="stylesheet" href="/ask.css">
 <link rel="stylesheet" href="/settings.css">
 <link rel="stylesheet" href="/learn.css">
+<link rel="stylesheet" href="/screener.css">
 </head>
 <body>
 
@@ -1601,6 +1602,7 @@
 <script src="/hedit.js"></script>
 <script src="/settings-ui.js"></script>
 <script src="/learn.js"></script>
+<script src="/screener.js"></script>
 <script src="/ask.js" defer></script>
 <script>
 (function () {
@@ -1962,6 +1964,8 @@
     plus: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 2.5v7M2.5 6h7"/></svg>'
   };
   var NAV = [
+    { id: "screener", label: "选股", sel: "screener", icon: function () { return window.SCREENER ? SCREENER.icon : ""; },
+      badge: function () { return window.SCREENER ? SCREENER.badge() : ""; }, title: "港股 / 美股多因子选股：找被低估、有潜力的公司，并长期跟踪" },
     { id: "learn", label: "投资学堂", sel: "learn", icon: function () { return window.LEARN ? LEARN.icon : ""; },
       badge: function () { return window.LEARN ? LEARN.badge() : ""; }, title: "系统化学习投资理论，并在自己的组合里看到它怎么用" }
   ];
@@ -2352,6 +2356,7 @@
     if (sel === "overview") main.innerHTML = renderOverview();
     else if (sel === "settings") main.innerHTML = window.SET ? SET.renderMain() : "";
     else if (sel === "learn") main.innerHTML = window.LEARN ? LEARN.renderMain() : "";
+    else if (sel === "screener") main.innerHTML = window.SCREENER ? SCREENER.renderMain() : "";
     else if (sel.indexOf("theme:") === 0) main.innerHTML = renderTheme(sel.slice(6));
     else if (sel.indexOf("trend:") === 0) main.innerHTML = renderTrend(sel.slice(6));
     else main.innerHTML = renderStock(sel);
@@ -2401,6 +2406,7 @@
     if (state.tab === "expert" && findStock(state.selected)) bindExperts(state.selected);
     if (state.selected === "settings" && window.SET) SET.bind();
     if (state.selected === "learn" && window.LEARN) LEARN.bind();
+    if (state.selected === "screener" && window.SCREENER) SCREENER.bind();
     renderSideDock();
     var sb = document.getElementById("btnSettings"); if (sb) sb.classList.toggle("on", state.selected === "settings");
     if (state.selected === "overview" && state.tab === "ov-risk") { bindNotify(); bindNotifyLog(); bindAlerts(); }
@@ -5584,6 +5590,7 @@
   setInterval(refreshStatus, 600000);
   renderFrBar(); renderSideDock();
   if (window.LEARN) LEARN.load();
+  if (window.SCREENER) SCREENER.load();
   loadFresh();
   setInterval(loadFresh, 300000);
   document.getElementById("btnRefresh").addEventListener("click", function () {

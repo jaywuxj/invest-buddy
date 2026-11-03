@@ -57,6 +57,12 @@ async def _review_weekly() -> dict:
     return await review.build_review(None, {"notify": True})
 
 
+async def _screener_weekly() -> dict:
+    """周六 10:00 选股周更：港股 / 美股多因子 → 估值复核 → 推荐理由 → 跟踪账本。"""
+    from .. import screener_run
+    return await screener_run.run_weekly()
+
+
 # name -> (可调用, 描述)。带参数的 job（deep-diligence）经 /api/analyze/<code> 触发。
 JOBS: dict[str, tuple[Callable[..., Awaitable[Any]], str]] = {
     "panel-build": (panel_build.run, "面板数据构建：财务/财报/研报（程序）+ 事件/信号/主题（DeepSeek）"),
@@ -67,6 +73,7 @@ JOBS: dict[str, tuple[Callable[..., Awaitable[Any]], str]] = {
     "alert-check": (alert_check.run, "预警安全网：全组合规则评估（事件驱动的定时兜底）"),
     "preopen-brief": (preopen_brief.run, "美股盘前简报"),
     "news-sentinel": (news_sentinel.run, "重大事件哨兵"),
+    "screener-weekly": (_screener_weekly, "选股周更：港美股多因子筛选 + 估值复核 + 推荐理由 + 跟踪账本"),
     "review-weekly": (_review_weekly, "周六 09:30 生成组合周度复盘并推送"),
     "weekly-signals": (weekly.run_signals, "周更A：行情信号与新闻流（已被 panel-build 覆盖，保留手动）"),
     "weekly-onepager": (weekly.run_onepager, "周更B：基本面研报一页纸（deep 级，保留手动）"),

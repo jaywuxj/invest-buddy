@@ -173,6 +173,39 @@ def rating(codes: list[str]) -> dict[str, dict]:
     return out
 
 
+def profile(codes: list[str]) -> dict[str, dict]:
+    """公司简况：{ws: {industry, sector, intro}}。简介单元格内有换行，按「| 代码 |」行首切分记录。"""
+    if not codes:
+        return {}
+    md = run(["profile", ",".join(codes)], timeout=60)
+    lines = md.split("\n")
+    head = next((l for l in lines if l.startswith("| code |")), None)
+    if not head:
+        return {}
+    cols = [c.strip() for c in head.strip("|").split("|")]
+    recs, cur = [], None
+    for ln in lines:
+        if re.match(r"^\|\s*(hk|us|sh|sz)[A-Za-z0-9.]+\s*\|", ln):
+            if cur:
+                recs.append(cur)
+            cur = ln
+        elif cur is not None and not ln.startswith("| ---") and not ln.startswith("| code"):
+            cur += " " + ln
+    if cur:
+        recs.append(cur)
+    out = {}
+    for r in recs:
+        cells = [c.strip() for c in r.strip().strip("|").split("|")]
+        d = dict(zip(cols, cells))
+        ws = d.get("code")
+        if not ws:
+            continue
+        val = lambda k: (d.get(k) or "").strip() if (d.get(k) or "").strip() not in ("-", "") else None
+        out[ws] = {"industry": val("industry"), "sector": val("sector"),
+                   "intro": re.sub(r"\s+", " ", val("introduction") or "")[:400] or None}
+    return out
+
+
 # ---- 估值引擎用：三大表季度序列 / 周 K / 富字段行情 ----
 
 def finance(ws: str, ftype: str, limit: int) -> list[dict]:
