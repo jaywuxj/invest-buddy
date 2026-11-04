@@ -2306,11 +2306,13 @@
     });
     return { n: P.length, mv: mv, day: q0 && prev ? (mv / prev - 1) * 100 : null, dayAmt: q0 && prev ? mv - prev : null, pnl: cost ? (mv / cost - 1) * 100 : null };
   }
+  /* 侧栏「组合总览」行只放名称 + 今日涨跌幅（2026-11-04 用户要求：页面干净；隐私模式下涨跌幅也一起隐藏） */
   function ovSideInner() {
     var L = portLive();
-    return '<span class="r1"><span class="nm">组合总览</span>' + (L.day != null ? '<span class="pct ' + pctClass(L.day) + '" title="今日涨跌（按人民币市值加权）">' + fmtPct(L.day) + "</span>" : "") + "</span>" +
-      '<span class="r2"><span class="cd">' + (L.dayAmt != null ? "今日" : "") + "</span>" +   /* 只数已在「持仓」分组行显示，这里不重复 */
-      '<span class="px ' + (L.dayAmt != null && !state.priv ? pctClass(L.dayAmt) : "") + '" title="今日涨跌额（折人民币）">' + (L.dayAmt != null ? yuan(L.dayAmt, true) : "") + "</span></span>";
+    var pct = L.day == null ? "" : state.priv
+      ? '<span class="pct" title="隐私模式已隐藏">' + PV_MASK + "</span>"
+      : '<span class="pct ' + pctClass(L.day) + '" title="今日涨跌（按人民币市值加权）">' + fmtPct(L.day) + "</span>";
+    return '<span class="r1"><span class="nm">组合总览</span>' + pct + "</span>";
   }
   function updateQuoteDOM() {
     var ovr = document.querySelector(".nav-row.ov-side .nb"); if (ovr) ovr.innerHTML = ovSideInner();
