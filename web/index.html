@@ -2147,13 +2147,8 @@
     if (op.pos) {
       html += '<div class="sg-list">';
       if (positions.length) {
-        var groups = groupPositions(positions);
-        MKT_SEQ.forEach(function (m) {
-          var g = groups[m];
-          if (!g || !g.length) return;
-          html += '<div class="side-sec">' + m + " · " + g.length + "</div>";
-          sortedGroup(g).forEach(function (s) { html += sideRow(s.code, s.name, s.code, s, true); });
-        });
+        /* 不再按市场分小标题（2026-11-04 用户要求），一个连续列表；可跨市场拖动排序 */
+        posSeq(positions).forEach(function (s) { html += sideRow(s.code, s.name, s.code, s, true); });
       } else html += '<div class="sg-empty">还没有持仓，点右侧 ＋ 添加</div>';
       html += "</div>";
     }
@@ -2219,7 +2214,7 @@
         var dstCode = el.getAttribute("data-code");
         if (!draggingCode || draggingCode === dstCode) return;
         var src = findStock(draggingCode), dst = findStock(dstCode);
-        if (!src || !dst || marketOf(src) !== marketOf(dst)) return;
+        if (!src || !dst) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
         var r = el.getBoundingClientRect();
@@ -2233,7 +2228,7 @@
         var srcCode = draggingCode;
         if (!srcCode || srcCode === dstCode) return;
         var src = findStock(srcCode), dst = findStock(dstCode);
-        if (!src || !dst || marketOf(src) !== marketOf(dst)) return;
+        if (!src || !dst) return;
         var r = el.getBoundingClientRect();
         var before = (e.clientY - r.top) < r.height / 2;
         movePos(srcCode, dstCode, before);
@@ -2241,13 +2236,24 @@
       });
     });
   }
-  function movePos(srcCode, dstCode, before) {
-    /* 当前展示顺序（按市场组拼接） */
-    var groups = groupPositions(state.holdings.positions || []);
-    var seq = [];
-    MKT_SEQ.forEach(function (m) {
-      if (groups[m]) sortedGroup(groups[m]).forEach(function (s) { seq.push(s.code); });
+  /* 持仓展示顺序：先按市场（港股→美股…）各自按保存的顺序/市值排，再拼接；有拖动记录的整体按记录排 */
+  function posSeq(positions) {
+    var groups = groupPositions(positions), seq = [];
+    MKT_SEQ.forEach(function (m) { if (groups[m]) seq = seq.concat(sortedGroup(groups[m])); });
+    Object.keys(groups).forEach(function (m) { if (MKT_SEQ.indexOf(m) < 0) seq = seq.concat(sortedGroup(groups[m])); });
+    var order = getPosOrder();
+    if (!order) return seq;
+    var base = seq.map(function (s) { return s.code; });
+    return seq.slice().sort(function (a, b) {
+      var ia = order.indexOf(a.code), ib = order.indexOf(b.code);
+      if (ia < 0 && ib < 0) return base.indexOf(a.code) - base.indexOf(b.code);
+      if (ia < 0) return 1;
+      if (ib < 0) return -1;
+      return ia - ib;
     });
+  }
+  function movePos(srcCode, dstCode, before) {
+    var seq = posSeq(state.holdings.positions || []).map(function (s) { return s.code; });
     var si = seq.indexOf(srcCode);
     if (si < 0) return;
     seq.splice(si, 1);
